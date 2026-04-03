@@ -1,23 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
 @theme {
   --font-sans: "Inter", sans-serif;
-  --font-serif: "Outfit", sans-serif;
+}
+
+:root {
+  --bg-primary: #F6F4F2; /* Bone */
+  --bg-card: #FFFFFF;
+  --text-primary: #425664; /* Slate Blue */
+  --text-muted: rgba(66, 86, 100, 0.4);
+  --border-primary: rgba(66, 86, 100, 0.1);
+  --accent-gold: #C6AD8F;
+}
+
+.dark {
+  --bg-primary: #1A1C1E; /* Deep Charcoal */
+  --bg-card: #25282B;
+  --text-primary: #F6F4F2; /* Bone White */
+  --text-muted: rgba(246, 244, 242, 0.4);
+  --border-primary: rgba(246, 244, 242, 0.1);
 }
 
 @layer base {
   body {
-    @apply text-white bg-dark antialiased font-sans;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif text-white;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    @apply antialiased font-sans transition-colors duration-500;
   }
 }
 
-/* Custom Scrollbar for Luxury Feel */
+/* Custom Scrollbar for Architectural Feel */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -27,37 +42,70 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
+  width: 2px;
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-primary);
 }
 
-/* Luxury Input Field Adjustments */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* Global Transition Protocol */
+button, a, input, select {
+  @apply transition-all duration-200 ease-in-out;
 }
-input[type="number"] {
-  -moz-appearance: textfield;
+
+/* Global UI Overhaul v4.0 - Strict 0px Audit */
+input, select, button, div, section, main, header, footer, aside, span, label, textarea {
+  border-radius: 0px !important;
+}
+
+/* Floating Elevation System */
+.floating-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  @apply shadow-floating transition-all duration-300;
+}
+
+.floating-card:hover {
+  border-color: var(--accent-gold);
+  @apply shadow-xl;
+}
+
+/* Skeleton Shimmer Protocol v4.0 */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, 
+    var(--border-primary) 25%, 
+    rgba(198, 173, 143, 0.05) 50%, 
+    var(--border-primary) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Glassmorphism Protocol */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-primary);
+  @apply shadow-glass;
+}
+
+.dark .glass-panel {
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 @layer utilities {
-  .text-luxury {
+  .text-curator {
     @apply tracking-widest-xl font-black uppercase;
   }
-  .border-premium {
-    @apply border border-slate/10;
-  }
-  .bg-glass {
-    @apply bg-white/70 backdrop-blur-md;
+  .border-curator {
+    border: 1px solid var(--border-primary);
   }
 }

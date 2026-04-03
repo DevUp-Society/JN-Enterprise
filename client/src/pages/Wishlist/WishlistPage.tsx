@@ -1,6 +1,6 @@
 import { RetailerPortalHeader } from '../../components/navigation/RetailerPortalHeader';
 import { Trash2, ArrowRight, PackageOpen } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import ArchitecturalEmptyState from '../../components/feedback/ArchitecturalEmptyState';
 
 export default function WishlistPage() {
   const wishlistItems = [
@@ -70,18 +70,13 @@ export default function WishlistPage() {
              </table>
           </div>
         ) : (
-          <div className="py-48 text-center space-y-10 bg-dark-surface border border-dashed border-white/5 rounded-[64px] shadow-2xl">
-             <div className="w-32 h-32 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5 opacity-20">
-                <PackageOpen size={64} className="text-white" />
-             </div>
-             <div className="space-y-4">
-                <h3 className="text-3xl font-black uppercase tracking-tighter text-white/20">No Procurement Drafts Detected</h3>
-                <p className="text-[11px] font-bold text-white/5 uppercase tracking-widest-xl">Your archive waiting list is currently empty</p>
-             </div>
-             <Link to="/shop" className="inline-block px-14 py-5 bg-primary text-white text-[12px] font-black uppercase tracking-widest-xl rounded-full shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
-                Audit Main Registry
-             </Link>
-          </div>
+          <ArchitecturalEmptyState 
+            icon={PackageOpen}
+            title="DRAFTS INACTIVE"
+            subtitle="YOUR ARCHIVE WAITING LIST IS CURRENTLY EMPTY. NO PROCUREMENT DRAFTS DETECTED IN THE LOCAL NODE."
+            actionText="AUDIT MAIN REGISTRY"
+            actionPath="/shop"
+          />
         )}
       </main>
     </div>

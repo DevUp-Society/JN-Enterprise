@@ -6,7 +6,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'CUSTOMER';
+  role: 'ADMIN' | 'CUSTOMER' | 'WORKER';
 }
 
 interface AuthContextType {
@@ -53,6 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           userData = { id: '1', email: normalizedEmail, name: 'Admin User', role: 'ADMIN' };
         } else if (normalizedEmail === 'user@jn.com' && password === 'user123') {
           userData = { id: '2', email: normalizedEmail, name: 'Premium Retailer', role: 'CUSTOMER' };
+        } else if (normalizedEmail === 'worker@jn.com' && password === 'worker123') {
+          userData = { id: '3', email: normalizedEmail, name: 'Michael Vance', role: 'WORKER' };
         }
 
         if (userData) {

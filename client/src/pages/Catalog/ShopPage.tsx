@@ -90,7 +90,7 @@ export default function ShopPage() {
             <div className="pt-8">
                <div className="p-8 bg-primary/5 rounded-[40px] border border-primary/10">
                   <span className="text-[9px] font-black text-primary uppercase tracking-widest-xl block mb-3">Sector Path</span>
-                  <p className="text-[12px] font-black text-white uppercase tracking-tighter">
+                  <p className="text-[12px] font-sans font-black text-white uppercase tracking-tighter">
                      {selectedCategory.length > 0 ? selectedCategory[0] : "Global"} Archive Registry
                   </p>
                   <button onClick={() => setSelectedCategory([])} className="text-[10px] font-black text-primary uppercase tracking-widest mt-6 border-b border-primary/20 hover:border-primary transition-all">Reset All Pathing</button>

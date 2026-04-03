@@ -1,19 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Logo } from '../../components/premium/Logo';
-import { ArrowRight, Loader, Lock, Mail, User, ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowRight, Loader, Lock, Mail, User, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
-  const { login, register, loading } = useAuth();
+  const { user, login, register, loading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'ADMIN') {
+        navigate('/admin');
+      } else if (user.role === 'WORKER') {
+        navigate('/worker/orders');
+      } else {
+        navigate('/home');
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +34,12 @@ export default function AuthPage() {
     setSuccess(false);
     
     if (isLogin) {
-      const user = await login(email, password);
-      if (user) {
-        if (user.role === 'ADMIN') {
+      const userResult = await login(email, password);
+      if (userResult) {
+        if (userResult.role === 'ADMIN') {
           navigate('/admin');
+        } else if (userResult.role === 'WORKER') {
+          navigate('/worker/orders');
         } else {
           navigate('/home');
         }
@@ -32,8 +47,8 @@ export default function AuthPage() {
         setError('Incorrect email or password. Please try again.');
       }
     } else {
-      const user = await register(name, email, password);
-      if (user) {
+      const userResult = await register(name, email, password);
+      if (userResult) {
         setSuccess(true);
         setTimeout(() => {
           setIsLogin(true);
@@ -48,177 +63,171 @@ export default function AuthPage() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-bone flex flex-col lg:flex-row overflow-hidden selection:bg-gold selection:text-white"
+      className="min-h-screen bg-white flex overflow-hidden font-sans selection:bg-primary/20"
     >
-      {/* Visual Side Panel (Slate Blue) */}
-      <div className="hidden lg:block lg:w-1/2 relative bg-slate">
-        <motion.img 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.3 }}
-          transition={{ duration: 2 }}
-          src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1200" 
-          className="absolute inset-0 w-full h-full object-cover grayscale"
-          alt="Professional Workspace"
-        />
-        <div className="absolute inset-0 flex flex-col justify-between p-20">
-          <Logo className="text-white scale-[1.2] origin-left" />
-          
-          <div className="space-y-8 max-w-md">
-             <div className="space-y-4">
-                <div className="h-[2px] w-12 bg-gold" />
-                <h2 className="text-7xl font-black text-white tracking-tighter uppercase leading-[0.9]">
-                   {isLogin ? "Welcome Back_" : "Start Now_"}
-                </h2>
-             </div>
-             <p className="text-lg font-light text-white/50 leading-relaxed italic">
-                Access the global wholesale archive and manage your premium inventory with precision.
-             </p>
-          </div>
-        </div>
+      {/* Visual Identity Panel (Left) */}
+      <div className="hidden lg:flex w-1/2 relative overflow-hidden flex-col justify-between p-20 bg-dark">
+         <img 
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200" 
+            className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale"
+            alt="HQ Architecture"
+         />
+         <div className="absolute inset-0 bg-gradient-to-br from-dark via-dark/80 to-transparent" />
+         
+         <div className="relative z-10">
+            <Link to="/">
+               <Logo className="text-white scale-125 origin-left" />
+            </Link>
+            <div className="mt-24 space-y-4">
+               <div className="h-1 w-12 bg-primary" />
+               <h2 className="text-8xl font-black text-white leading-tight tracking-tighter uppercase font-serif">
+                  JN GLOBAL <br />
+                  <span className="text-primary italic">ENTERPRISE_</span>
+               </h2>
+               <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm leading-relaxed">
+                  The infrastructure of industrial distribution and global wholesale networking.
+               </p>
+            </div>
+         </div>
+
+         <div className="relative z-10 pt-10 border-t border-white/10 flex justify-between items-center text-[10px] font-black text-white/20 uppercase tracking-widest">
+            <span>ISO 9001:2015 CERTIFIED</span>
+            <span>Est. 1998</span>
+         </div>
       </div>
 
-      {/* Form Panel (White / Bone Contrast) */}
-      <div className="flex-1 flex flex-col justify-center px-8 md:px-24 bg-white lg:bg-bone/20 relative">
-        <div className="max-w-md w-full mx-auto space-y-12 backdrop-blur-sm p-10 bg-white/40 border border-slate/5 lg:border-none lg:bg-transparent shadow-2xl lg:shadow-none">
-          <div className="space-y-4">
-             <Logo className="lg:hidden mb-12" />
-             <h3 className="text-5xl font-black text-slate tracking-tighter uppercase leading-none">
-               {isLogin ? "Login" : "Sign Up"}
-             </h3>
-             <p className="text-[10px] font-bold opacity-30 tracking-widest-xl uppercase">
-               {isLogin ? "Enter your details to access your account" : "Sign up to start your wholesale partnership"}
-             </p>
-          </div>
+      {/* Form Panel (Right) */}
+      <div className="flex-1 flex flex-col justify-center px-12 md:px-24 bg-[#FDFDFD] relative">
+         <div className="max-w-md w-full mx-auto space-y-12">
+            <div className="space-y-4 text-center lg:text-left">
+               <h1 className="text-6xl font-black text-dark uppercase tracking-tighter leading-none">
+                  {isLogin ? "Login_" : "Sign Up_"}
+               </h1>
+               <p className="text-[11px] font-bold text-dark/30 uppercase tracking-[0.2em] leading-relaxed">
+                  {isLogin ? "Access your enterprise workspace." : "Create your wholesale partner account."}
+               </p>
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="space-y-8">
-              <AnimatePresence mode="wait">
-                {!isLogin && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-3 group"
+            <form onSubmit={handleSubmit} className="space-y-8">
+               <div className="space-y-6">
+                  <AnimatePresence mode="wait">
+                     {!isLogin && (
+                        <motion.div 
+                           initial={{ opacity: 0, y: -10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           className="space-y-2"
+                        >
+                           <label className="text-[10px] font-black text-dark/40 uppercase tracking-widest flex items-center gap-2">
+                              <User size={12} className="text-primary" /> Full Name
+                           </label>
+                           <input 
+                              type="text" 
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              placeholder="John Doe"
+                              className="w-full bg-white border border-dark/10 p-5 text-[14px] text-dark font-bold focus:outline-none focus:border-primary transition-all rounded-xl placeholder:text-dark/10 shadow-sm"
+                              required={!isLogin}
+                           />
+                        </motion.div>
+                     )}
+                  </AnimatePresence>
+
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-dark/40 uppercase tracking-widest flex items-center gap-2">
+                        <Mail size={12} className="text-primary" /> Email Address
+                     </label>
+                     <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@company.com"
+                        className="w-full bg-white border border-dark/10 p-5 text-[14px] text-dark font-bold focus:outline-none focus:border-primary transition-all rounded-xl placeholder:text-dark/10 shadow-sm"
+                        required 
+                     />
+                  </div>
+
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-dark/40 uppercase tracking-widest flex items-center gap-2">
+                        <Lock size={12} className="text-primary" /> Password
+                     </label>
+                     <div className="relative group">
+                        <input 
+                           type={showPassword ? "text" : "password"} 
+                           value={password}
+                           onChange={(e) => setPassword(e.target.value)}
+                           placeholder="********"
+                           className="w-full bg-white border border-dark/10 p-5 text-[14px] text-dark font-bold focus:outline-none focus:border-primary transition-all rounded-xl placeholder:text-dark/10 shadow-sm pr-14"
+                           required 
+                        />
+                        <button 
+                           type="button"
+                           onClick={() => setShowPassword(!showPassword)}
+                           className="absolute right-5 top-1/2 -translate-y-1/2 text-primary hover:text-dark transition-colors"
+                        >
+                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="space-y-6">
+                  {error && (
+                     <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="p-4 bg-red-50 border-l-4 border-red-500 text-[10px] font-black uppercase tracking-widest text-red-600"
+                     >
+                        {error}
+                     </motion.div>
+                  )}
+
+                  {success && (
+                     <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="p-4 bg-green-50 border-l-4 border-green-500 text-[10px] font-black uppercase tracking-widest text-green-600 flex items-center gap-3"
+                     >
+                        <CheckCircle size={14} /> Account Created Successfully
+                     </motion.div>
+                  )}
+
+                  <button 
+                     type="submit"
+                     disabled={loading}
+                     className="w-full h-20 bg-primary text-white rounded-xl text-[14px] font-black tracking-widest uppercase hover:bg-dark transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-6 disabled:opacity-50"
                   >
-                    <div className="flex items-center gap-2 opacity-30 group-focus-within:opacity-100 transition-opacity">
-                       <User size={12} className="text-gold" />
-                       <label className="text-[10px] tracking-widest-xl uppercase font-black text-black">Full Name</label>
-                    </div>
-                    <input 
-                      type="text" 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your name"
-                      className="w-full bg-bone/30 border border-slate/10 p-5 focus:outline-none focus:border-gold transition-all text-slate font-bold placeholder:opacity-10 placeholder:text-[9px] placeholder:uppercase placeholder:tracking-widest"
-                      required={!isLogin}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                     {loading ? <Loader className="animate-spin" size={20} /> : (
+                        <>
+                           {isLogin ? "Login" : "Create Account"}
+                           <ArrowRight size={20} />
+                        </>
+                     )}
+                  </button>
 
-              <div className="space-y-3 group">
-                <div className="flex items-center gap-2 opacity-30 group-focus-within:opacity-100 transition-opacity">
-                   <Mail size={12} className="text-gold" />
-                   <label className="text-[10px] tracking-widest-xl uppercase font-black text-black">Email</label>
-                </div>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  className="w-full bg-bone/30 border border-slate/10 p-5 focus:outline-none focus:border-gold transition-all text-slate font-bold placeholder:opacity-10 placeholder:text-[9px] placeholder:uppercase placeholder:tracking-widest"
-                  required 
-                />
-              </div>
-              
-              <div className="space-y-3 group">
-                <div className="flex items-center gap-2 opacity-30 group-focus-within:opacity-100 transition-opacity">
-                   <Lock size={12} className="text-gold" />
-                   <label className="text-[10px] tracking-widest-xl uppercase font-black text-black">Password</label>
-                </div>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="********"
-                  className="w-full bg-bone/30 border border-slate/10 p-5 focus:outline-none focus:border-gold transition-all text-slate font-bold placeholder:opacity-10"
-                  required 
-                />
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {error && (
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-[9px] font-bold tracking-widest-xl uppercase text-red-500 bg-red-50 p-4 border-l-2 border-red-500"
-                >
-                  {error}
-                </motion.p>
-              )}
-
-              {success && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-[9px] font-bold tracking-widest-xl uppercase text-green-600 bg-green-50 p-4 border-l-2 border-green-600 flex items-center gap-3"
-                >
-                  <CheckCircle size={14} /> Account Created Successfully
-                </motion.div>
-              )}
-
-              <button 
-                type="submit"
-                disabled={loading}
-                className="w-full bg-slate text-bone py-6 text-xs font-black tracking-widest-xl uppercase hover:bg-black transition-all shadow-xl flex items-center justify-center gap-4 group"
-              >
-                {loading ? <Loader className="animate-spin" size={16} /> : (
-                  <>
-                    {isLogin ? "Login" : "Create Account"}
-                    <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform duration-300" />
-                  </>
-                )}
-              </button>
-
-              <button 
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError('');
-                  setSuccess(false);
-                }}
-                className="w-full text-center text-[10px] font-black tracking-widest-xl uppercase text-slate/30 hover:text-gold transition-colors py-4 flex items-center justify-center gap-4 group"
-              >
-                {isLogin ? (
-                  <>
-                    New here? Create an account
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </>
-                ) : (
-                  <>
-                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                    Back to login
-                  </>
-                )}
-              </button>
-
-              {isLogin && (
-                <div className="pt-4 border-t border-slate/5">
-                  <p className="text-[9px] font-bold text-slate/40 uppercase tracking-widest-xl text-center">
-                    Test Credentials: admin@jn.com / admin123
-                  </p>
-                </div>
-              )}
-            </div>
-          </form>
-
-          <footer className="pt-24 flex justify-between items-center text-[9px] font-black tracking-widest-xl uppercase opacity-20 text-black">
-             <span>© 2024 JN Enterprise</span>
-             <span className="text-gold opacity-100">Help Center</span>
-          </footer>
-        </div>
+                  <button 
+                     type="button"
+                     onClick={() => {
+                        setIsLogin(!isLogin);
+                        setError('');
+                        setSuccess(false);
+                     }}
+                     className="w-full text-center"
+                  >
+                     <span className="text-[10px] font-black text-dark/20 uppercase tracking-widest hover:text-primary transition-colors">
+                        {isLogin ? "Need an account? Sign Up" : "Back to Login"}
+                     </span>
+                  </button>
+               </div>
+            </form>
+            
+               <div className="pt-8 border-t border-dark/5 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-40">
+                  <span className="text-[9px] font-black uppercase tracking-widest">Help: admin@jn.com (Admin) | worker@jn.com (Worker)</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest">Pass: admin123</span>
+               </div>
+         </div>
       </div>
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
     </motion.div>
   );
 }
