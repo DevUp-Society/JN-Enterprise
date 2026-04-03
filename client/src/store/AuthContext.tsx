@@ -44,14 +44,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<User | null> => {
     setLoading(true);
+    const normalizedEmail = email.toLowerCase();
     // Mock Auth Logic
     return new Promise((resolve) => {
       setTimeout(() => {
         let userData: User | null = null;
-        if (email === 'admin@jn.com' && password === 'admin123') {
-          userData = { id: '1', email, name: 'Admin User', role: 'ADMIN' };
-        } else if (email === 'user@jn.com' && password === 'user123') {
-          userData = { id: '2', email, name: 'Premium Retailer', role: 'CUSTOMER' };
+        if (normalizedEmail === 'admin@jn.com' && password === 'admin123') {
+          userData = { id: '1', email: normalizedEmail, name: 'Admin User', role: 'ADMIN' };
+        } else if (normalizedEmail === 'user@jn.com' && password === 'user123') {
+          userData = { id: '2', email: normalizedEmail, name: 'Premium Retailer', role: 'CUSTOMER' };
         }
 
         if (userData) {

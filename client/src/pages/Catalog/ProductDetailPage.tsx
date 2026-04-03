@@ -32,10 +32,10 @@ export default function ProductDetailPage() {
   };
 
   const similarProducts = [
-    { id: 101, name: "UTILITY PARKA", price: 620, category: "APPAREL", image: "https://images.unsplash.com/photo-1544022613-e87ca7da9da1?auto=format&fit=crop&q=80&w=400" },
-    { id: 102, name: "GRID TEXTURE VEST", price: 410, category: "APPAREL", image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=400" },
-    { id: 103, name: "THERMAL LINER", price: 215, category: "APPAREL", image: "https://images.unsplash.com/photo-1544923246-77307dd654ca?auto=format&fit=crop&q=80&w=400" },
-    { id: 104, name: "MODULAR HOODIE", price: 180, category: "APPAREL", image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=400" },
+    { id: "101", name: "UTILITY PARKA", price: 620, category: "APPAREL", image: "https://images.unsplash.com/photo-1544022613-e87ca7da9da1?auto=format&fit=crop&q=80&w=400" },
+    { id: "102", name: "GRID TEXTURE VEST", price: 410, category: "APPAREL", image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=400" },
+    { id: "103", name: "THERMAL LINER", price: 215, category: "APPAREL", image: "https://images.unsplash.com/photo-1544923246-77307dd654ca?auto=format&fit=crop&q=80&w=400" },
+    { id: "104", name: "MODULAR HOODIE", price: 180, category: "APPAREL", image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=400" },
   ];
 
   return (

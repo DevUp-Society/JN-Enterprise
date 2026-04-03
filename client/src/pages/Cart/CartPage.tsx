@@ -12,44 +12,54 @@ export default function CartPage() {
   const totalWeight = cartItems.reduce((acc, item) => acc + (item.weight * item.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-bone text-slate font-sans selection:bg-gold selection:text-white pb-32">
+    <div className="min-h-screen bg-dark text-white font-sans selection:bg-primary/20 pb-40">
       <RetailerPortalHeader />
       
-      <main className="max-w-[1400px] mx-auto px-12 py-16 space-y-16">
+      <main className="max-w-[1750px] mx-auto px-12 py-32 space-y-16">
+        <div className="flex flex-col md:flex-row justify-between items-end border-b border-white/5 pb-8">
+           <div className="space-y-2">
+              <h1 className="text-5xl font-black tracking-tighter uppercase font-serif">Procurement Cart</h1>
+              <p className="text-[12px] font-black text-primary tracking-widest uppercase">Verified Wholesale Registry</p>
+           </div>
+           <div className="text-right opacity-30 text-[10px] font-bold uppercase tracking-widest">
+              Session ID: PROC-992-VERIFIED
+           </div>
+        </div>
+
         <div className="grid lg:grid-cols-3 gap-16">
-           <div className="lg:col-span-2 space-y-8">
-              {/* Cart Table */}
-              <div className="overflow-x-auto border border-black/5 bg-white shadow-sm">
+           <div className="lg:col-span-2 space-y-12">
+              {/* Cart Table - Enterprise Dark Style */}
+              <div className="overflow-hidden border border-white/5 bg-dark-surface rounded-[40px] shadow-2xl">
                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-[#F6F4F2] border-b border-black/5">
-                       <tr className="text-[10px] font-black uppercase tracking-widest text-slate/40">
-                          <th className="px-8 py-6">Product Item</th>
-                          <th className="px-8 py-6 text-center">Qty</th>
-                          <th className="px-8 py-6 text-center">Unit Price</th>
-                          <th className="px-8 py-6 text-right">Subtotal</th>
+                    <thead className="bg-white/5 border-b border-white/5">
+                       <tr className="text-[10px] font-black uppercase tracking-widest-xl text-white/20">
+                          <th className="px-10 py-8">Product Item</th>
+                          <th className="px-10 py-8 text-center">Batch Qty</th>
+                          <th className="px-10 py-8 text-center">Unit Val</th>
+                          <th className="px-10 py-8 text-right">Inventory Val</th>
                        </tr>
                     </thead>
-                    <tbody className="divide-y divide-black/5">
+                    <tbody className="divide-y divide-white/5">
                        {cartItems.map((item) => (
-                         <tr key={item.id} className="text-xs group hover:bg-bone/20 transition-colors">
-                            <td className="px-8 py-10">
-                               <div className="flex gap-8 items-center">
-                                  <div className="w-20 h-24 bg-bone border border-black/5 overflow-hidden">
-                                     <img src={`https://images.unsplash.com/photo-${item.id === 1 ? '1591047139829-d91aec16adcd' : '1620799140408-edc6dcb6d633'}?auto=format&fit=crop&q=80&w=200`} className="w-full h-full object-cover grayscale-[0.3]" alt={item.name} />
+                         <tr key={item.id} className="text-sm group hover:bg-white/[0.02] transition-colors">
+                            <td className="px-10 py-12">
+                               <div className="flex gap-10 items-center">
+                                  <div className="w-24 h-32 bg-dark border border-white/5 rounded-2xl overflow-hidden shadow-inner">
+                                     <img src={`https://images.unsplash.com/photo-${item.id === 1 ? '1591047139829-d91aec16adcd' : '1620799140408-edc6dcb6d633'}?auto=format&fit=crop&q=80&w=300`} className="w-full h-full object-cover grayscale-[0.2]" alt={item.name} />
                                   </div>
-                                  <div className="space-y-1.5">
-                                     <p className="font-bold uppercase tracking-tight text-sm">{item.name}</p>
-                                     <p className="text-[10px] font-bold opacity-30 tracking-widest uppercase">SKU: {item.sku} | SIZE: {item.size}</p>
+                                  <div className="space-y-2">
+                                     <p className="font-black uppercase tracking-tighter text-lg leading-none">{item.name}</p>
+                                     <p className="text-[10px] font-bold text-white/30 tracking-widest uppercase">SKU: {item.sku} | SCALE: {item.size}</p>
                                   </div>
                                </div>
                             </td>
-                            <td className="px-8 py-10 text-center font-black">{item.quantity}</td>
-                            <td className="px-8 py-10 text-center opacity-40">${item.price}</td>
-                            <td className="px-8 py-10 text-right font-black">
-                               <div className="flex flex-col items-end gap-3">
-                                  <span>${item.price * item.quantity}</span>
-                                  <button className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <Trash2 size={14} />
+                            <td className="px-10 py-12 text-center font-black text-lg">{item.quantity}</td>
+                            <td className="px-10 py-12 text-center text-white/40">${item.price}</td>
+                            <td className="px-10 py-12 text-right font-black text-lg">
+                               <div className="flex flex-col items-end gap-4">
+                                  <span className="text-primary">${(item.price * item.quantity).toLocaleString()}</span>
+                                  <button className="w-10 h-10 rounded-full border border-red-500/10 text-red-500/30 flex items-center justify-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-all">
+                                     <Trash2 size={16} />
                                   </button>
                                </div>
                             </td>
@@ -59,58 +69,62 @@ export default function CartPage() {
                  </table>
               </div>
 
-              {/* Matrix Summary Blocks */}
+              {/* Data Summary Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                 <div className="p-10 bg-white border border-black/5 space-y-4">
-                    <Package size={20} className="text-gold" />
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total Units</p>
-                    <p className="text-3xl font-black">{totalItems}</p>
-                 </div>
-                 <div className="p-10 bg-white border border-black/5 space-y-4">
-                    <Truck size={20} className="text-gold" />
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Volume (Est.)</p>
-                    <p className="text-3xl font-black">{totalWeight}kg</p>
-                 </div>
-                 <div className="p-10 bg-white border border-black/5 space-y-4">
-                    <Database size={20} className="text-gold" />
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Verification</p>
-                    <p className="text-3xl font-black uppercase text-green-600">VALID</p>
-                 </div>
+                 {[
+                   { label: "Total Asset Units", val: totalItems, icon: Package },
+                   { label: "Metric Volume", val: `${totalWeight}kg`, icon: Truck },
+                   { label: "Audit Status", val: "VERIFIED", icon: Database, color: "text-green-500" }
+                 ].map((stat, i) => (
+                    <div key={i} className="p-10 bg-dark-surface border border-white/5 rounded-[40px] space-y-6 shadow-xl">
+                       <stat.icon size={24} className="text-primary" />
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-widest-xl text-white/20">{stat.label}</p>
+                          <p className={`text-4xl font-black ${stat.color || 'text-white'}`}>{stat.val}</p>
+                       </div>
+                    </div>
+                 ))}
               </div>
            </div>
 
-           {/* Checkout Sidebar */}
+           {/* Checkout Matrix Sidebar */}
            <aside className="space-y-12">
-              <div className="bg-[#425664] text-white p-12 space-y-10 shadow-2xl">
-                 <div className="space-y-3">
-                    <p className="text-[10px] font-black tracking-widest uppercase opacity-40">Procurement Total</p>
-                    <h4 className="text-6xl font-black tracking-tighter">${totalPrice.toLocaleString()}</h4>
-                 </div>
-                 
-                 <div className="space-y-6 border-t border-white/10 pt-10">
-                    <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest">
-                       <span className="opacity-40">Shipping Est.</span>
-                       <span>TBD</span>
+              <div className="bg-dark-surface p-12 rounded-[56px] border border-white/5 shadow-2xl relative overflow-hidden">
+                 <div className="relative z-10 space-y-12">
+                    <div className="space-y-4">
+                       <p className="text-[10px] font-black tracking-widest-xl uppercase text-white/20">Procurement Final Total</p>
+                       <h4 className="text-7xl font-black tracking-tighter text-white leading-none">${totalPrice.toLocaleString()}</h4>
                     </div>
-                    <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest">
-                       <span className="opacity-40">Tier Discount</span>
-                       <span className="text-gold">-15% Applied</span>
+                    
+                    <div className="space-y-8 border-t border-white/5 pt-12">
+                       <div className="flex justify-between text-[12px] font-black uppercase tracking-widest">
+                          <span className="text-white/20">Shipping Estimate</span>
+                          <span className="text-white/60">Calculated at Hub</span>
+                       </div>
+                       <div className="flex justify-between text-[12px] font-black uppercase tracking-widest">
+                          <span className="text-white/20">Enterprise Discount</span>
+                          <span className="text-primary">-15% Applied</span>
+                       </div>
                     </div>
-                 </div>
 
-                 <div className="space-y-4 pt-10">
-                    <button className="w-full h-14 bg-[#C6AD8F] text-white text-[11px] font-black uppercase tracking-widest hover:bg-white hover:text-[#425664] transition-all flex items-center justify-center gap-4">
-                       Finalize Order <ArrowRight size={18} />
-                    </button>
-                    <button className="w-full h-14 bg-green-600/20 text-green-400 border border-green-600/30 text-[11px] font-black uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all flex items-center justify-center gap-4">
-                       <MessageSquare size={18} /> Export to WhatsApp
-                    </button>
+                    <div className="space-y-4 pt-4">
+                       <button className="w-full h-16 bg-primary text-white text-[12px] font-black uppercase tracking-widest-xl hover:bg-white hover:text-dark transition-all flex items-center justify-center gap-4 rounded-full shadow-2xl shadow-primary/20">
+                          Transfer to Checkout <ArrowRight size={20} />
+                       </button>
+                       <button className="w-full h-16 bg-white/5 text-white/40 border border-white/5 text-[12px] font-black uppercase tracking-widest-xl hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-4 rounded-full">
+                          <MessageSquare size={20} /> WhatsApp Expert Registry
+                       </button>
+                    </div>
                  </div>
+                 {/* Visual Accent */}
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[100px] -z-0" />
               </div>
 
-              <p className="text-[10px] font-bold text-center uppercase tracking-widest opacity-30 leading-relaxed px-12">
-                 Bulk orders require curatorial verification before shipment authorization.
-              </p>
+              <div className="px-10 text-center">
+                 <p className="text-[10px] font-bold uppercase tracking-widest-xl text-white/10 leading-relaxed">
+                    Bulk procurement requires ISO standard verification before fulfillment terminal release.
+                 </p>
+              </div>
            </aside>
         </div>
       </main>

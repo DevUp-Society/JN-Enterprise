@@ -26,7 +26,7 @@ export default function AuthPage() {
         if (user.role === 'ADMIN') {
           navigate('/admin');
         } else {
-          navigate('/catalog');
+          navigate('/home');
         }
       } else {
         setError('Incorrect email or password. Please try again.');
@@ -202,6 +202,14 @@ export default function AuthPage() {
                   </>
                 )}
               </button>
+
+              {isLogin && (
+                <div className="pt-4 border-t border-slate/5">
+                  <p className="text-[9px] font-bold text-slate/40 uppercase tracking-widest-xl text-center">
+                    Test Credentials: admin@jn.com / admin123
+                  </p>
+                </div>
+              )}
             </div>
           </form>
 

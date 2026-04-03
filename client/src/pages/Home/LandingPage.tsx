@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Carousel } from '../../components/premium/Carousel';
 import { ArrowRight, Package, PenTool, Truck } from 'lucide-react';
 import { Logo } from '../../components/premium/Logo';
+import { useAuth } from '../../store/AuthContext';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -17,6 +18,8 @@ const staggerContainer = {
 };
 
 export default function LandingPage() {
+  const { user } = useAuth();
+
   const features = [
     { 
       title: "BULK EFFICIENCY", 
@@ -48,15 +51,24 @@ export default function LandingPage() {
           
           <div className="flex items-center gap-12">
             <div className="hidden md:flex gap-10 text-[10px] tracking-widest-xl uppercase font-bold opacity-60">
-              <Link to="/catalog" className="hover:text-gold transition-colors">Collections</Link>
+              <Link to="/shop" className="hover:text-gold transition-colors">Collections</Link>
               <button className="hover:text-gold transition-colors">Bulk Orders</button>
             </div>
-            <Link 
-              to="/login"
-              className="bg-slate text-bone px-8 py-3 text-[10px] tracking-widest-xl font-black uppercase hover:bg-gold transition-all shadow-md group border border-slate"
-            >
-              RETAILER LOGIN
-            </Link>
+            {user ? (
+              <Link 
+                to={user.role === 'ADMIN' ? "/admin" : "/home"}
+                className="bg-gold text-white px-8 py-3 text-[10px] tracking-widest-xl font-black uppercase hover:bg-slate transition-all shadow-md group border border-gold"
+              >
+                GO TO DASHBOARD
+              </Link>
+            ) : (
+              <Link 
+                to="/login"
+                className="bg-slate text-bone px-8 py-3 text-[10px] tracking-widest-xl font-black uppercase hover:bg-gold transition-all shadow-md group border border-slate"
+              >
+                RETAILER LOGIN
+              </Link>
+            )}
           </div>
         </nav>
       </header>
@@ -86,10 +98,10 @@ export default function LandingPage() {
 
               <div className="pt-4">
                 <Link 
-                  to="/login"
+                  to={user ? (user.role === 'ADMIN' ? "/admin" : "/home") : "/login"}
                   className="group inline-flex items-center gap-6 bg-slate text-bone px-14 py-6 text-xs font-black tracking-widest-xl uppercase hover:bg-gold transition-all relative overflow-hidden"
                 >
-                  <span className="relative z-10">START PROCUREMENT</span>
+                  <span className="relative z-10">{user ? "GO TO DASHBOARD" : "START PROCUREMENT"}</span>
                   <ArrowRight size={18} className="relative z-10 group-hover:translate-x-2 transition-transform duration-300" />
                 </Link>
               </div>

@@ -1,5 +1,5 @@
 import { RetailerPortalHeader } from '../../components/navigation/RetailerPortalHeader';
-import { Heart, Trash2, ArrowRight } from 'lucide-react';
+import { Trash2, ArrowRight, PackageOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function WishlistPage() {
@@ -9,50 +9,58 @@ export default function WishlistPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-bone text-slate font-sans selection:bg-gold selection:text-white pb-32">
+    <div className="min-h-screen bg-dark text-white font-sans selection:bg-primary/20 pb-40">
       <RetailerPortalHeader />
       
-      <main className="max-w-[1400px] mx-auto px-12 py-16 space-y-16">
+      <main className="max-w-[1750px] mx-auto px-12 py-32 space-y-16">
+        <div className="flex flex-col md:flex-row justify-between items-end border-b border-white/5 pb-8">
+           <div className="space-y-2">
+              <h1 className="text-5xl font-black tracking-tighter uppercase font-serif">Registry Drafts</h1>
+              <p className="text-[12px] font-black text-primary tracking-widest uppercase">Saved Wholesale Assets</p>
+           </div>
+           <div className="text-right opacity-30 text-[10px] font-bold uppercase tracking-widest">
+              Total Drafted Units: {wishlistItems.length}
+           </div>
+        </div>
+
         {wishlistItems.length > 0 ? (
-          <div className="border border-black/5 bg-white shadow-sm overflow-hidden">
+          <div className="border border-white/5 bg-dark-surface rounded-[48px] shadow-2xl overflow-hidden">
              <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F6F4F2] border-b border-black/5">
-                   <tr className="text-[10px] font-black uppercase tracking-widest text-slate/40">
-                      <th className="px-8 py-6">Product Details</th>
-                      <th className="px-8 py-6 text-center">Category</th>
-                      <th className="px-8 py-6 text-center">Status</th>
-                      <th className="px-8 py-6 text-right">Draft Action</th>
+                <thead className="bg-white/5 border-b border-white/5">
+                   <tr className="text-[10px] font-black uppercase tracking-widest-xl text-white/20">
+                      <th className="px-10 py-8">Asset Details</th>
+                      <th className="px-10 py-8 text-center">Sector</th>
+                      <th className="px-10 py-8 text-center">Audit Status</th>
+                      <th className="px-10 py-8 text-right">Transfer Action</th>
                    </tr>
                 </thead>
-                <tbody className="divide-y divide-black/5">
+                <tbody className="divide-y divide-white/5">
                    {wishlistItems.map((item) => (
-                     <tr key={item.id} className="text-xs group hover:bg-bone/20 transition-colors">
-                        <td className="px-8 py-10">
-                           <div className="flex gap-8 items-center">
-                              <div className="w-20 h-24 bg-bone border border-black/5 overflow-hidden">
-                                 <img src={item.image} className="w-full h-full object-cover grayscale-[0.3]" alt={item.name} />
+                     <tr key={item.id} className="text-sm group hover:bg-white/[0.02] transition-colors">
+                        <td className="px-10 py-12">
+                           <div className="flex gap-10 items-center">
+                              <div className="w-24 h-32 bg-dark border border-white/5 rounded-2xl overflow-hidden shadow-inner">
+                                 <img src={item.image} className="w-full h-full object-cover grayscale-[0.2]" alt={item.name} />
                               </div>
-                              <div className="space-y-1.5">
-                                 <p className="font-bold uppercase tracking-tight text-sm">{item.name}</p>
-                                 <p className="text-[10px] font-bold opacity-30 tracking-widest uppercase">SKU: {item.sku}</p>
+                              <div className="space-y-2">
+                                 <p className="font-black uppercase tracking-tighter text-lg leading-none">{item.name}</p>
+                                 <p className="text-[10px] font-bold text-white/30 tracking-widest uppercase">SKU: {item.sku}</p>
                               </div>
                            </div>
                         </td>
-                        <td className="px-8 py-10 text-center">
-                           <span className="px-4 py-1.5 bg-slate/5 text-[9px] font-black uppercase tracking-widest border border-black/5">{item.category}</span>
+                        <td className="px-10 py-12 text-center">
+                           <span className="px-5 py-2 bg-white/5 text-[9px] font-black uppercase tracking-widest-xl border border-white/5 rounded-full text-white/40">{item.category}</span>
                         </td>
-                        <td className="px-8 py-10 text-center">
-                           <span className="flex items-center justify-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
-                              <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse" /> In Stock
-                           </span>
+                        <td className="px-10 py-12 text-center text-green-500 font-bold text-[10px] uppercase tracking-widest-xl">
+                           AVAILABLE
                         </td>
-                        <td className="px-8 py-10 text-right">
-                           <div className="flex justify-end gap-5">
-                              <button className="h-12 px-8 bg-[#425664] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#C6AD8F] transition-all flex items-center gap-3">
-                                 Move to Cart <ArrowRight size={14} />
+                        <td className="px-10 py-12 text-right">
+                           <div className="flex justify-end items-center gap-6">
+                              <button className="h-14 px-10 bg-primary text-white text-[11px] font-black uppercase tracking-widest-xl hover:bg-white hover:text-dark transition-all flex items-center gap-4 rounded-full shadow-xl shadow-primary/20">
+                                 Move to Final Order <ArrowRight size={16} />
                               </button>
-                              <button className="h-12 w-12 flex items-center justify-center border border-black/5 text-red-500 hover:bg-red-50 transition-all">
-                                 <Trash2 size={16} />
+                              <button className="h-14 w-14 flex items-center justify-center border border-white/5 rounded-full text-white/10 hover:text-red-500 hover:bg-white/5 transition-all">
+                                 <Trash2 size={20} />
                               </button>
                            </div>
                         </td>
@@ -62,14 +70,16 @@ export default function WishlistPage() {
              </table>
           </div>
         ) : (
-          <div className="py-32 text-center space-y-8 bg-white border border-dashed border-black/10">
-             <Heart size={64} className="mx-auto text-slate/10" />
-             <div className="space-y-2">
-                <h3 className="text-xl font-black uppercase tracking-tighter">Your Waiting List is Empty</h3>
-                <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest-xl">No procurement drafts found in your archives</p>
+          <div className="py-48 text-center space-y-10 bg-dark-surface border border-dashed border-white/5 rounded-[64px] shadow-2xl">
+             <div className="w-32 h-32 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5 opacity-20">
+                <PackageOpen size={64} className="text-white" />
              </div>
-             <Link to="/home" className="inline-block px-12 h-14 bg-[#425664] text-white text-[10px] font-black uppercase tracking-widest items-center content-center hover:bg-[#C6AD8F] transition-all">
-                Search Collections
+             <div className="space-y-4">
+                <h3 className="text-3xl font-black uppercase tracking-tighter text-white/20">No Procurement Drafts Detected</h3>
+                <p className="text-[11px] font-bold text-white/5 uppercase tracking-widest-xl">Your archive waiting list is currently empty</p>
+             </div>
+             <Link to="/shop" className="inline-block px-14 py-5 bg-primary text-white text-[12px] font-black uppercase tracking-widest-xl rounded-full shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
+                Audit Main Registry
              </Link>
           </div>
         )}

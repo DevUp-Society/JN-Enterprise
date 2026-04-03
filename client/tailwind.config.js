@@ -7,12 +7,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        bone: '#F6F4F2',
-        slate: {
-          DEFAULT: '#425664',
-          muted: 'rgba(66, 86, 100, 0.2)',
+        dark: {
+          DEFAULT: '#2A2A2A',
+          surface: '#383838',
+          accent: '#1E1E1E'
         },
-        gold: '#C6AD8F',
+        primary: {
+          DEFAULT: '#FF6B00',
+          hover: '#E66000',
+          muted: 'rgba(255, 107, 0, 0.1)'
+        },
+        slate: {
+          DEFAULT: '#FFFFFF',
+          muted: '#A0A0A0',
+        },
       },
       borderRadius: {
         'none': '0px',

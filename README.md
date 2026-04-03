@@ -98,4 +98,13 @@ npm run dev
 The portal will be accessible at `http://localhost:5173`.
 
 ---
+
+## 🔐 Test Credentials
+
+| Role | Email | Password | Access |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin@jn.com` | `admin123` | Full Inventory Control |
+| **Retailer** | `user@jn.com` | `user123` | Wholesale Catalog & Orders |
+
+---
 *Developed for JN Enterprise - The New Standard in Wholesale Supply.*

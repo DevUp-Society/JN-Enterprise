@@ -10,10 +10,10 @@
 
 @layer base {
   body {
-    @apply text-slate bg-bone antialiased font-sans;
+    @apply text-white bg-dark antialiased font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif text-white;
   }
 }
 

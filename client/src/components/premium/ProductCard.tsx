@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   price: number;
   category: string;
@@ -17,40 +17,39 @@ interface ProductCardProps {
 export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group space-y-4"
+      className="group bg-white p-4 rounded-[28px] space-y-4 hover:shadow-2xl transition-all duration-500 border border-slate-muted/5"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-bone border border-slate/5 transition-all group-hover:border-slate/20">
+      <div className="relative aspect-square overflow-hidden rounded-[24px] bg-[#F3F6F5]">
         <img 
           src={product.image} 
           alt={product.name}
-          className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
         />
-        
-        {/* Quick Add to Wishlist Button */}
-        <button 
-          className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md flex items-center justify-center text-slate hover:bg-gold hover:text-white transition-all shadow-sm border border-slate/10 opacity-0 group-hover:opacity-100 duration-300"
-          title="Quick Add to Wishlist"
-        >
-          <Plus size={18} />
-        </button>
       </div>
 
-      <div className="space-y-1">
-        <div className="flex justify-between items-start">
-          <h4 className="text-sm font-bold text-slate uppercase tracking-tight leading-tight max-w-[80%]">
+      <div className="px-1 space-y-3 relative pb-2">
+        <div className="space-y-1">
+          <h4 className="text-[14px] font-bold text-[#1A1A1A] tracking-tight leading-tight">
             {product.name}
           </h4>
-          <span className="text-xs font-black text-slate/40 tracking-tighter">
-             ${product.price}
-          </span>
+          <p className="text-[10px] font-medium text-slate-muted tracking-wide">
+            Bulk ID: {product.sku || (Math.floor(Math.random() * 500) + 100) + ' units'}
+          </p>
         </div>
         
-        <div className="flex justify-between items-center text-[10px] tracking-widest uppercase font-bold text-slate/30">
-          <span>SKU: {product.sku || 'JN-' + product.id.toString().padStart(4, '0')}</span>
-          <span className="text-slate/60 text-[9px]">Starting at: <span className="text-slate font-black">${product.price}</span></span>
+        <div className="flex justify-between items-end">
+          <p className="text-[16px] font-black text-[#1A1A1A]">
+            ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </p>
+          
+          <button 
+            className="w-10 h-10 rounded-full bg-[#EBF1EF] flex items-center justify-center text-[#1A1A1A] group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm"
+          >
+            <ShoppingCart size={16} className="fill-current group-hover:fill-none" />
+          </button>
         </div>
       </div>
     </motion.div>
