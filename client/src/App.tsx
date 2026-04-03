@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import { AuthProvider } from './store/AuthContext';
 import { CartProvider } from './store/CartContext';
+import { WishlistProvider } from './store/WishlistContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { PageLayout } from './components/navigation/PageLayout';
 
@@ -40,95 +41,95 @@ import WorkerAccount from './pages/Admin/WorkerAccount';
 
 function AnimatedRoutes() {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageLayout><LandingPage /></PageLayout>} />
         <Route path="/login" element={<AuthPage />} />
-        
+
         {/* Retailer Experience */}
-        <Route 
-          path="/home" 
+        <Route
+          path="/home"
           element={
             <ProtectedRoute>
               <PageLayout><RetailerHome /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/shop" 
+        <Route
+          path="/shop"
           element={
             <ProtectedRoute>
               <PageLayout><ShopPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/product/:id" 
+        <Route
+          path="/product/:id"
           element={
             <ProtectedRoute>
               <PageLayout><ProductDetailPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/cart" 
+        <Route
+          path="/cart"
           element={
             <ProtectedRoute>
               <PageLayout><CartPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/checkout" 
+        <Route
+          path="/checkout"
           element={
             <ProtectedRoute>
               <PageLayout><CheckoutPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/checkout/success" 
+        <Route
+          path="/checkout/success"
           element={
             <ProtectedRoute>
               <PageLayout><OrderSuccess /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/wishlist" 
+        <Route
+          path="/wishlist"
           element={
             <ProtectedRoute>
               <PageLayout><WishlistPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/waiting-list" 
+        <Route
+          path="/waiting-list"
           element={
             <ProtectedRoute>
               <PageLayout><WaitingListPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/notifications" 
+        <Route
+          path="/notifications"
           element={
             <ProtectedRoute>
               <PageLayout><NotificationsPage /></PageLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Admin Dashboard (Modular & Routed) */}
-        <Route 
-          path="/admin" 
+        <Route
+          path="/admin"
           element={
             <ProtectedRoute adminOnly>
               <AdminLayout />
             </ProtectedRoute>
-          } 
+          }
         >
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<Overview />} />
@@ -145,8 +146,8 @@ function AnimatedRoutes() {
         </Route>
 
         {/* Worker Portal (Fulfillment & Logistics) */}
-        <Route 
-          path="/worker" 
+        <Route
+          path="/worker"
           element={
             <ProtectedRoute workerOnly>
               <WorkerLayout />
@@ -178,9 +179,11 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <CartProvider>
-          <AnimatedRoutes />
-        </CartProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <AnimatedRoutes />
+          </CartProvider>
+        </WishlistProvider>
       </AuthProvider>
     </Router>
   );
