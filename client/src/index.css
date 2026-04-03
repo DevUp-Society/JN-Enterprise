@@ -1,15 +1,14 @@
-<<<<<<< HEAD
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-=======
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
->>>>>>> origin/siri
 
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
 @theme {
   --font-sans: "Inter", sans-serif;
-<<<<<<< HEAD
+  --font-serif: "Inter", sans-serif;
+  --color-primary-retail: #F6F4F2;
+  --color-secondary-retail: #425664;
+  --color-accent-retail: #C6AD8F;
 }
 
 :root {
@@ -27,20 +26,10 @@
   --text-primary: #F6F4F2; /* Bone White */
   --text-muted: rgba(246, 244, 242, 0.4);
   --border-primary: rgba(246, 244, 242, 0.1);
-=======
-  --font-serif: "Inter", sans-serif;
-  --color-primary: #F6F4F2;
-  --color-secondary: #425664;
-  --color-accent: #C6AD8F;
-  --color-accent-hover: #B59D7E;
-  --color-text-main: #425664;
-  --color-text-light: #F6F4F2;
->>>>>>> origin/siri
 }
 
 @layer base {
   body {
-<<<<<<< HEAD
     background-color: var(--bg-primary);
     color: var(--text-primary);
     @apply antialiased font-sans transition-colors duration-500;
@@ -48,16 +37,6 @@
 }
 
 /* Custom Scrollbar for Architectural Feel */
-=======
-    @apply text-secondary bg-primary antialiased font-sans;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif text-secondary;
-  }
-}
-
-/* Custom Scrollbar for Luxury Feel */
->>>>>>> origin/siri
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -67,17 +46,12 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-<<<<<<< HEAD
   width: 2px;
-=======
-  width: 4px;
->>>>>>> origin/siri
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-<<<<<<< HEAD
   background: var(--text-primary);
 }
 
@@ -131,20 +105,6 @@ input, select, button, div, section, main, header, footer, aside, span, label, t
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-@layer utilities {
-  .text-curator {
-    @apply tracking-widest-xl font-black uppercase;
-  }
-  .border-curator {
-    border: 1px solid var(--border-primary);
-=======
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
 /* Luxury Input Field Adjustments */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -156,14 +116,10 @@ input[type="number"] {
 }
 
 @layer utilities {
-  .text-luxury {
+  .text-curator {
     @apply tracking-widest-xl font-black uppercase;
   }
-  .border-premium {
-    @apply border border-slate/10;
-  }
-  .bg-glass {
-    @apply bg-white/70 backdrop-blur-md;
->>>>>>> origin/siri
+  .border-curator {
+    border: 1px solid var(--border-primary);
   }
 }
