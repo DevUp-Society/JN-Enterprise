@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { AuthProvider } from './store/AuthContext';
 import { CartProvider } from './store/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import { PageLayout } from './components/navigation/PageLayout';
 
 // New Architecture Pages
 import LandingPage from './pages/Home/LandingPage';
@@ -12,8 +13,10 @@ import RetailerHome from './pages/Home/RetailerHome';
 import ShopPage from './pages/Catalog/ShopPage';
 import CartPage from './pages/Cart/CartPage';
 import WishlistPage from './pages/Wishlist/WishlistPage';
+import WaitingListPage from './pages/Wishlist/WaitingListPage';
+import NotificationsPage from './pages/Home/NotificationsPage';
 import ProductDetailPage from './pages/Catalog/ProductDetailPage';
-import CheckoutPage from './pages/Cart/CheckoutPage';
+import CheckoutPage from './pages/Checkout/CheckoutPage';
 import OrderSuccess from './pages/Cart/OrderSuccess';
 
 // Admin Architecture (Modular)
@@ -41,7 +44,7 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<PageLayout><LandingPage /></PageLayout>} />
         <Route path="/login" element={<AuthPage />} />
         
         {/* Retailer Experience */}
@@ -49,7 +52,7 @@ function AnimatedRoutes() {
           path="/home" 
           element={
             <ProtectedRoute>
-              <RetailerHome />
+              <PageLayout><RetailerHome /></PageLayout>
             </ProtectedRoute>
           } 
         />
@@ -57,7 +60,7 @@ function AnimatedRoutes() {
           path="/shop" 
           element={
             <ProtectedRoute>
-              <ShopPage />
+              <PageLayout><ShopPage /></PageLayout>
             </ProtectedRoute>
           } 
         />
@@ -65,7 +68,7 @@ function AnimatedRoutes() {
           path="/product/:id" 
           element={
             <ProtectedRoute>
-              <ProductDetailPage />
+              <PageLayout><ProductDetailPage /></PageLayout>
             </ProtectedRoute>
           } 
         />
@@ -73,7 +76,7 @@ function AnimatedRoutes() {
           path="/cart" 
           element={
             <ProtectedRoute>
-              <CartPage />
+              <PageLayout><CartPage /></PageLayout>
             </ProtectedRoute>
           } 
         />
@@ -81,7 +84,7 @@ function AnimatedRoutes() {
           path="/checkout" 
           element={
             <ProtectedRoute>
-              <CheckoutPage />
+              <PageLayout><CheckoutPage /></PageLayout>
             </ProtectedRoute>
           } 
         />
@@ -89,7 +92,7 @@ function AnimatedRoutes() {
           path="/checkout/success" 
           element={
             <ProtectedRoute>
-              <OrderSuccess />
+              <PageLayout><OrderSuccess /></PageLayout>
             </ProtectedRoute>
           } 
         />
@@ -97,7 +100,23 @@ function AnimatedRoutes() {
           path="/wishlist" 
           element={
             <ProtectedRoute>
-              <WishlistPage />
+              <PageLayout><WishlistPage /></PageLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/waiting-list" 
+          element={
+            <ProtectedRoute>
+              <PageLayout><WaitingListPage /></PageLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute>
+              <PageLayout><NotificationsPage /></PageLayout>
             </ProtectedRoute>
           } 
         />

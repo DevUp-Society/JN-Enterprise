@@ -1,204 +1,293 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RetailerPortalHeader } from '../../components/navigation/RetailerPortalHeader';
-import { ProductCard } from '../../components/premium/ProductCard';
-import { QuickOrderMatrix } from '../../components/premium/QuickOrderMatrix';
-import { Star, ShieldCheck, Truck, Package, ChevronRight } from 'lucide-react';
+import { 
+  ChevronRight, 
+  Minus, 
+  Plus, 
+  ShoppingCart,
+  Zap,
+  Box,
+  Factory,
+  Heart,
+  Bell,
+  Star,
+  MessageSquare,
+  ShieldCheck,
+  Truck
+} from 'lucide-react';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState('specifications');
+  const [quantity, setQuantity] = useState(100);
+  const [showSticky, setShowSticky] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+  const [activeTab, setActiveTab] = useState('specs');
 
-  // Unified mock product (in real app, fetch by id)
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowSticky(window.scrollY > 600);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const product = {
-    id: parseInt(id || "1"),
-    name: "ARCHITECTURAL OVERCOAT",
-    price: 840,
-    category: "APPAREL",
-    sku: "JN-APPA-001-B",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aec16adcd?auto=format&fit=crop&q=80&w=1200",
-    description: "Industrial-grade textile engineering applied to modern silhouettes. The Architectural Overcoat features high-density weave patterns and reinforced structural seams for durability in wholesale environments.",
-    specs: {
-       material: "80% Wool, 20% Technical Poly",
-       weight: "850 GSM",
-       origin: "Shenzhen Hub",
-       treatment: "DWR Water Repellent"
-    },
+    id: id,
+    name: "Industrial Zinc-Coated Wall Hooks",
+    price: "₹2,450",
+    unitPrice: "₹85",
+    moq: "50 Units",
+    stockStatus: "In Stock",
+    tagline: "Heavy-duty architecture-grade zinc alloy hooks for industrial-grade vertical organization and facility management.",
+    images: [
+      "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?auto=format&fit=crop&q=80&w=1200"
+    ],
+    bulkPricing: [
+      { range: "50-100", price: "85", highlight: false },
+      { range: "101-500", price: "72", highlight: true },
+      { range: "500+", price: "64", highlight: false }
+    ],
+    specs: [
+      { label: "Material", value: "Zinc-Coated Steel" },
+      { label: "Weight Capacity", value: "25kg / hook" },
+      { label: "Origin", value: "JN Manufacturing Hub" },
+      { label: "Finish", value: "Matte Industrial Zinc" },
+      { label: "Dimensions", value: "120mm x 45mm" },
+      { label: "Compliance", value: "ISO 9001 Audited" }
+    ],
     reviews: [
-       { id: 1, user: "GlobalRetail_A", rating: 5, comment: "Exceptional build quality. The sizing matrix is accurate.", date: "2024-03-12" },
-       { id: 2, user: "TextileHub_NY", rating: 4, comment: "Batch consistency is impressive. Shipping was prompt.", date: "2024-03-05" }
+      { user: "Global Supply Corp", rating: 5, comment: "Exceptional build quality. The zinc coating is consistent across 5,000 units.", date: "2 days ago" },
+      { user: "Metro Logistics", rating: 4, comment: "Reliable hooks for our warehouse facility. Quick fulfillment time.", date: "1 week ago" }
     ]
   };
 
-  const similarProducts = [
-    { id: "101", name: "UTILITY PARKA", price: 620, category: "APPAREL", image: "https://images.unsplash.com/photo-1544022613-e87ca7da9da1?auto=format&fit=crop&q=80&w=400" },
-    { id: "102", name: "GRID TEXTURE VEST", price: 410, category: "APPAREL", image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=400" },
-    { id: "103", name: "THERMAL LINER", price: 215, category: "APPAREL", image: "https://images.unsplash.com/photo-1544923246-77307dd654ca?auto=format&fit=crop&q=80&w=400" },
-    { id: "104", name: "MODULAR HOODIE", price: 180, category: "APPAREL", image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=400" },
-  ];
+  const isOutOfStock = product.stockStatus === 'Out of Stock';
 
   return (
-    <div className="min-h-screen bg-bone text-slate font-sans selection:bg-gold selection:text-white pb-48">
-      <RetailerPortalHeader />
-      
-      <main className="max-w-[1700px] mx-auto px-12 pt-16">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate/30 mb-8">
-           <Link to="/home" className="hover:text-slate transition-colors">PORTAL</Link>
-           <ChevronRight size={10} />
-           <Link to={`/shop?category=${product.category}`} className="hover:text-slate transition-colors">{product.category}</Link>
-           <ChevronRight size={10} />
-           <span className="text-gold">{product.name}</span>
-        </nav>
+    <div className="bg-[#F6F4F2] font-sans selection:bg-[#C6AD8F] selection:text-white">
+      <main className="pb-40">
+        {/* 1. Breadcrumbs */}
+        <section className="pt-[110px] px-8 max-w-[1400px] mx-auto">
+          <div className="flex items-center gap-2 text-xs font-medium lowercase text-[#6B7280] py-8 border-b border-[#425664]/10 mb-12">
+            <Link to="/" className="hover:text-[#111827]">home</Link>
+            <ChevronRight size={14} />
+            <Link to="/shop" className="hover:text-[#111827]">products</Link>
+            <ChevronRight size={14} />
+            <span className="text-[#C6AD8F]">#batch-{product.id}00-x</span>
+          </div>
+        </section>
 
-        <div className="grid lg:grid-cols-2 gap-24">
-           {/* Product Visuals */}
-           <div className="space-y-6">
-              <div className="aspect-[4/5] bg-white border border-black/5 overflow-hidden">
+        {/* 2. Primary Product View */}
+        <section className="max-w-[1400px] mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+           {/* Image Matrix */}
+           <div className="space-y-8 sticky top-32">
+              <motion.div 
+                layoutId="main-product-img"
+                className="aspect-square bg-white rounded-[40px] overflow-hidden border border-[#425664]/5 shadow-sm p-12 flex items-center justify-center"
+              >
                  <img 
-                   src={product.image} 
-                   className="w-full h-full object-cover grayscale-[0.2]" 
+                   src={product.images[activeImage]} 
                    alt={product.name} 
+                   className="w-full h-full object-contain" 
                  />
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                 {[1,2,3,4].map(i => (
-                    <div key={i} className="aspect-square bg-white border border-black/5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
-                        <img src={product.image} className="w-full h-full object-cover" />
-                    </div>
+              </motion.div>
+              <div className="flex gap-4 scrollbar-hide overflow-x-auto pb-2">
+                 {product.images.map((img, idx) => (
+                   <button 
+                     key={idx}
+                     onClick={() => setActiveImage(idx)}
+                     className={`w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all p-2 flex-shrink-0 bg-white ${activeImage === idx ? 'border-[#C6AD8F] shadow-lg' : 'border-transparent opacity-40 hover:opacity-100 hover:border-[#425664]/10'}`}
+                   >
+                     <img src={img} alt={`View ${idx}`} className="w-full h-full object-contain" />
+                   </button>
                  ))}
               </div>
            </div>
 
-           {/* Product Procurement Info */}
-           <div className="space-y-12">
-              <div className="space-y-4">
-                 <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-gold/10 text-gold text-[8px] font-black uppercase tracking-widest">Verified OEM Archive</span>
-                    <span className="text-[10px] font-bold text-slate/30 uppercase tracking-widest">SKU: {product.sku}</span>
-                 </div>
-                 <h1 className="text-5xl font-black text-slate tracking-tighter uppercase leading-none">{product.name}</h1>
-                 <div className="flex items-center gap-6 pt-2">
-                    <div className="flex items-center gap-1 text-gold">
-                       {[1,2,3,4,5].map(i => <Star key={i} size={12} className="fill-gold" />)}
+           {/* Information Dashboard */}
+           <div className="space-y-16">
+              <div className="space-y-6">
+                 <div className="flex items-center justify-between">
+                    <div className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest border ${isOutOfStock ? 'bg-red-50 text-red-500 border-red-100' : 'bg-white text-[#6B7280] border-[#425664]/10'}`}>
+                       {product.stockStatus === 'In Stock' ? 'Operational_ Active Stock' : 'Out of Stock_ Depleted'}
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate/40 underline cursor-pointer">Read 24 Procurement Reviews</span>
-                 </div>
-              </div>
-
-              <p className="text-sm font-medium text-slate/60 leading-relaxed max-w-xl uppercase italic">
-                 "{product.description}"
-              </p>
-
-              {/* High Volume Ordering Matrix */}
-              <div className="space-y-6 bg-white border border-black/5 p-10 shadow-sm">
-                 <div className="flex justify-between items-center pb-6 border-b border-black/5">
-                    <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3">
-                       <Package size={16} className="text-gold" />
-                       Procurement Matrix
-                    </h3>
-                    <div className="flex items-center gap-2 text-green-600">
-                       <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse" />
-                       <span className="text-[9px] font-black uppercase tracking-widest">Ready for Shipment</span>
+                    <div className="flex items-center gap-3">
+                       <button className="w-12 h-12 bg-white border border-[#425664]/10 rounded-2xl flex items-center justify-center text-[#425664]/40 hover:text-red-500 hover:border-red-100 transition-all shadow-sm group">
+                          <Heart size={20} className="group-hover:fill-current" />
+                       </button>
+                       <button className="w-12 h-12 bg-white border border-[#425664]/10 rounded-2xl flex items-center justify-center text-[#425664]/40 hover:text-[#C6AD8F] hover:border-[#C6AD8F]/30 transition-all shadow-sm">
+                          <Bell size={20} />
+                       </button>
                     </div>
                  </div>
-                 <QuickOrderMatrix />
-              </div>
-
-              {/* Service Cards */}
-              <div className="grid grid-cols-2 gap-6">
-                 <div className="p-8 border border-black/5 bg-white space-y-3">
-                    <Truck size={18} className="text-gold" />
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate">Global Freight</h4>
-                    <p className="text-[9px] font-bold text-slate/30 uppercase tracking-widest leading-loose">Expedited container logistics available for this archive.</p>
-                 </div>
-                 <div className="p-8 border border-black/5 bg-white space-y-3">
-                    <ShieldCheck size={18} className="text-gold" />
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate">Quality Node</h4>
-                    <p className="text-[9px] font-bold text-slate/30 uppercase tracking-widest leading-loose">100% inspection guaranteed at Shenzhen collection hub.</p>
+                 <h1 className="text-3xl font-bold text-[#425664] leading-tight tracking-tight">{product.name}</h1>
+                 <p className="text-base text-[#6B7280] font-normal leading-relaxed max-w-xl">{product.tagline}</p>
+                 <div className="flex items-center gap-4 pt-4">
+                    <div className="flex text-[#C6AD8F]">
+                       {[1,2,3,4,5].map(s => <Star key={s} size={16} fill="currentColor" />)}
+                    </div>
+                    <span className="text-xs font-medium text-[#6B7280] uppercase tracking-widest">4.9 Matrix Rating based on 12 procurement cycles</span>
                  </div>
               </div>
-           </div>
-        </div>
 
-        {/* Extended Details Tabs */}
-        <section className="mt-32 border-t border-black/5 pt-16">
-           <div className="flex gap-16 mb-12">
-              {['specifications', 'reviews', 'shipping'].map((tab) => (
-                <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`text-[11px] font-black uppercase tracking-widest pb-4 border-b-2 transition-all ${activeTab === tab ? 'border-gold text-slate' : 'border-transparent text-slate/20 hover:text-slate/40'}`}
-                >
-                  {tab.replace('_', ' ')}
-                </button>
-              ))}
-           </div>
+              {/* Advanced Bulk Tiers */}
+               <div className="bg-white rounded-[40px] p-10 border border-[#425664]/5 shadow-sm space-y-8">
+                 <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-widest text-[#6B7280] border-b border-[#425664]/5 pb-6">
+                    <span>Industrial Bulk Tiers</span>
+                    <span>Procurement Price / Unit</span>
+                 </div>
+                 <div className="space-y-4">
+                    {product.bulkPricing.map((tier, i) => (
+                      <div key={i} className={`flex justify-between items-center px-8 py-6 rounded-3xl border transition-all cursor-pointer ${tier.highlight ? 'bg-[#111827] text-white border-[#111827] shadow-2xl scale-[1.02]' : 'bg-[#F6F4F2] border-[#425664]/5 text-[#425664]'}`}>
+                         <span className="text-base font-medium uppercase tracking-wider">{tier.range} Units Bundle</span>
+                         <span className="text-xl font-bold">₹{tier.price} <span className="text-xs font-normal text-[#6B7280]">/ Unit</span></span>
+                      </div>
+                    ))}
+                 </div>
+              </div>
 
-           <div className="max-w-4xl min-h-[300px]">
-              <AnimatePresence mode="wait">
-                 {activeTab === 'specifications' && (
-                   <motion.div 
-                     key="specs"
-                     initial={{ opacity: 0, x: -10 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     exit={{ opacity: 0, x: 10 }}
-                     className="grid grid-cols-2 gap-y-8 gap-x-16"
-                   >
-                      {Object.entries(product.specs).map(([key, val]) => (
-                        <div key={key} className="space-y-1">
-                           <h5 className="text-[9px] font-bold text-slate/30 uppercase tracking-widest">{key}</h5>
-                           <p className="text-[11px] font-black text-slate uppercase">{val}</p>
-                        </div>
-                      ))}
-                   </motion.div>
-                 )}
+              {/* Execution Stack */}
+              <div className="space-y-8">
+                 <div className="flex items-center gap-8 p-8 bg-white rounded-[40px] border border-[#425664]/5 shadow-sm">
+                    <div className="flex items-center gap-6 bg-[#F6F4F2] p-2 rounded-2xl border border-[#425664]/5">
+                       <button onClick={() => setQuantity(Math.max(50, quantity - 50))} className="w-12 h-12 flex items-center justify-center text-[#425664] hover:bg-white rounded-xl transition-all"><Minus size={20} /></button>
+                       <span className="text-[20px] font-bold text-[#111827] w-20 text-center">{quantity}</span>
+                       <button onClick={() => setQuantity(quantity + 50)} className="w-12 h-12 flex items-center justify-center text-[#425664] hover:bg-white rounded-xl transition-all"><Plus size={20} /></button>
+                    </div>
+                    <div className="flex-1">
+                       <p className="text-[11px] font-black uppercase tracking-widest text-[#425664]/40 mb-1">Total Procurement Estimate_</p>
+                       <p className="text-[32px] font-bold text-[#111827] tracking-tighter">₹{(quantity * 72).toLocaleString()}</p>
+                    </div>
+                 </div>
 
-                 {activeTab === 'reviews' && (
-                   <motion.div 
-                     key="reviews"
-                     initial={{ opacity: 0, x: -10 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     exit={{ opacity: 0, x: 10 }}
-                     className="space-y-12"
-                   >
-                      {product.reviews.map(review => (
-                        <div key={review.id} className="space-y-4 max-w-2xl">
-                           <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate">{review.user}</span>
-                              <span className="text-[9px] font-bold text-slate/30 uppercase tracking-widest">{review.date}</span>
-                           </div>
-                           <div className="flex gap-1">
-                              {[1,2,3,4,5].map(i => (
-                                <Star key={i} size={10} className={i <= review.rating ? 'fill-gold text-gold' : 'text-slate/10'} />
-                              ))}
-                           </div>
-                           <p className="text-[11px] font-medium text-slate/60 uppercase leading-relaxed italic">"{review.comment}"</p>
-                        </div>
-                      ))}
-                   </motion.div>
-                 )}
-              </AnimatePresence>
+                 <div className="flex gap-4">
+                    <Link to="/checkout" className="flex-[2] bg-[#111827] text-white py-7 rounded-[32px] font-black uppercase text-[13px] tracking-[0.2em] hover:bg-black transition-all shadow-2xl shadow-[#111827]/30 flex items-center justify-center gap-4 group">
+                       <Zap size={20} fill="white" className="group-hover:scale-125 transition-transform" />
+                       Proceed to Payment
+                    </Link>
+                    <button className="flex-1 bg-white border-2 border-[#111827] text-[#111827] py-7 rounded-[32px] font-black uppercase text-[12px] tracking-widest hover:bg-[#111827] hover:text-white transition-all">
+                       Bulk RFQ
+                    </button>
+                 </div>
+              </div>
+
+              {/* Trust & Compliance Matrix */}
+              <div className="grid grid-cols-3 gap-8 pt-16 border-t border-[#425664]/10">
+                 {[
+                    { label: "High-Volume Logistics", Icon: Truck },
+                    { label: "ISO 9001 Certified", Icon: ShieldCheck },
+                    { label: "Direct Forge Source", Icon: Factory }
+                 ].map((stat, i) => (
+                    <div key={i} className="text-center space-y-4">
+                       <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-[#425664]/5 text-[#C6AD8F]">
+                          <stat.Icon size={24} />
+                       </div>
+                       <p className="text-[10px] font-black uppercase tracking-widest text-[#425664]/50 leading-tight">{stat.label}</p>
+                    </div>
+                 ))}
+              </div>
            </div>
         </section>
 
-        {/* Similar Products */}
-        <section className="mt-48 space-y-12">
-           <div className="flex justify-between items-end border-b border-black/5 pb-4">
-              <h2 className="text-2xl font-black text-slate tracking-tighter uppercase leading-none">Similar Procurement Archives</h2>
-              <Link to="/shop" className="text-[9px] font-black text-slate/30 hover:text-gold uppercase tracking-widest transition-all">SEE ALL</Link>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {similarProducts.map(p => (
-                <div key={p.id} onClick={() => window.scrollTo(0, 0)} className="cursor-pointer">
-                   <ProductCard product={p} />
-                </div>
-              ))}
+        {/* 3. Advanced Tabs (Specs & Reviews) */}
+        <section className="max-w-[1400px] mx-auto px-8 pt-40">
+           <div className="bg-white rounded-[60px] border border-[#425664]/10 shadow-sm overflow-hidden">
+              <div className="flex bg-[#F6F4F2] border-b border-[#425664]/5">
+                 <button 
+                   onClick={() => setActiveTab('specs')}
+                   className={`px-12 py-8 text-base font-medium tracking-widest transition-all gap-3 flex items-center ${activeTab === 'specs' ? 'bg-white text-[#425664] border-t-4 border-[#425664]' : 'text-[#6B7280] hover:text-[#425664]'}`}
+                 >
+                    <Box size={18} /> Technical Blueprint
+                 </button>
+                 <button 
+                   onClick={() => setActiveTab('reviews')}
+                   className={`px-12 py-8 text-base font-medium tracking-widest transition-all gap-3 flex items-center ${activeTab === 'reviews' ? 'bg-white text-[#425664] border-t-4 border-[#425664]' : 'text-[#6B7280] hover:text-[#425664]'}`}
+                 >
+                    <MessageSquare size={18} /> Procurement Feedback
+                 </button>
+              </div>
+
+              <div className="p-16">
+                 {activeTab === 'specs' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+                       {product.specs.map((spec, i) => (
+                          <div key={i} className="space-y-3 pb-8 border-b border-[#425664]/5">
+                             <p className="text-[11px] font-black uppercase tracking-widest text-[#C6AD8F]">{spec.label}</p>
+                             <p className="text-[18px] font-semibold text-[#111827] tracking-tight">{spec.value}</p>
+                          </div>
+                       ))}
+                    </div>
+                 ) : (
+                    <div className="space-y-12">
+                       <div className="flex justify-between items-center mb-16">
+                          <div className="space-y-2">
+                             <h4 className="text-4xl font-semibold text-[#111827] tracking-tighter">Procurement Satisfaction_</h4>
+                             <p className="text-[14px] text-[#425664]/40 font-semibold uppercase tracking-widest">Audited manufacturing feedback and reviews</p>
+                          </div>
+                          <button className="bg-[#111827] text-white px-8 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl">
+                             Submit Internal Audit
+                          </button>
+                       </div>
+
+                       <div className="grid grid-cols-1 gap-12">
+                          {product.reviews.map((rev, i) => (
+                             <div key={i} className="p-10 bg-[#F6F4F2] rounded-[40px] border border-[#425664]/5 space-y-6">
+                                <div className="flex justify-between items-start">
+                                   <div className="space-y-1">
+                                      <p className="text-[16px] font-bold text-[#111827]">{rev.user}</p>
+                                      <div className="flex text-[#C6AD8F]">
+                                         {[1,2,3,4,5].map(s => <Star key={s} size={14} fill={s <= rev.rating ? 'currentColor' : 'none'} />)}
+                                      </div>
+                                   </div>
+                                   <span className="text-[11px] font-black text-[#425664]/30 uppercase tracking-widest">{rev.date} Matrix Logs</span>
+                                </div>
+                                <p className="text-[16px] text-[#425664] leading-relaxed font-medium italic">"{rev.comment}"</p>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                 )}
+              </div>
            </div>
         </section>
       </main>
+
+      {/* 4. Sticky Supply Action Bar */}
+      <AnimatePresence>
+        {showSticky && (
+          <motion.div 
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            className="fixed bottom-0 left-0 right-0 h-[100px] bg-white/95 backdrop-blur-xl border-t border-[#425664]/10 z-[60] px-8 shadow-[0_-15px_40px_rgba(0,0,0,0.08)]"
+          >
+            <div className="max-w-[1400px] mx-auto h-full flex items-center justify-between gap-12">
+               <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden border border-[#425664]/10 bg-[#F6F4F2] p-2 flex items-center justify-center">
+                     <img src={product.images[0]} className="w-full h-full object-contain" alt="Thumb" />
+                  </div>
+                  <div className="hidden sm:block">
+                     <h4 className="text-[17px] font-bold text-[#111827] tracking-tight">{product.name}</h4>
+                     <p className="text-[12px] text-[#C6AD8F] font-black uppercase tracking-widest">Tier-2 Batch Allocation Active</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-12">
+                  <div className="text-right hidden md:block">
+                     <p className="text-[11px] font-black uppercase tracking-widest text-[#425664]/40">Consolidated Reserve</p>
+                     <p className="text-[26px] font-bold text-[#111827]">₹{(quantity * 72).toLocaleString()}</p>
+                  </div>
+                  <Link to="/checkout" className="bg-[#111827] text-white px-12 py-5 rounded-3xl font-black uppercase text-[12px] tracking-[0.2em] hover:bg-black transition-all flex items-center gap-4 shadow-xl shadow-[#111827]/20 group">
+                     <ShoppingCart size={18} className="group-hover:rotate-12 transition-transform" />
+                     Proceed to Payment
+                  </Link>
+               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

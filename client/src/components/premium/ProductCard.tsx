@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -8,6 +10,7 @@ interface Product {
   category: string;
   image: string;
   sku?: string;
+  moq?: number;
 }
 
 interface ProductCardProps {
@@ -15,42 +18,58 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
+  const [qty, setQty] = useState(product.moq || 50);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group bg-white p-4 rounded-[28px] space-y-4 hover:shadow-2xl transition-all duration-500 border border-slate-muted/5"
+      className="group bg-white p-5 rounded-[32px] space-y-5 hover:shadow-2xl transition-all duration-500 border border-[#425664]/5 relative overflow-hidden h-full"
     >
-      <div className="relative aspect-square overflow-hidden rounded-[24px] bg-[#F3F6F5]">
+      <Link to={`/product/${product.id}`} className="block relative aspect-square overflow-hidden rounded-[24px] bg-[#F6F4F2]">
         <img 
           src={product.image} 
           alt={product.name}
           className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
         />
-      </div>
+        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-[#425664]/5">
+           <span className="text-[10px] font-bold text-[#425664] uppercase tracking-widest">In Stock</span>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#111827]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      </Link>
 
-      <div className="px-1 space-y-3 relative pb-2">
-        <div className="space-y-1">
-          <h4 className="text-[14px] font-bold text-[#1A1A1A] tracking-tight leading-tight">
+      <div className="px-1 space-y-4">
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center text-[#C6AD8F]">
+             <span className="text-xs font-semibold uppercase tracking-widest">{product.category}</span>
+             <span className="text-[10px] font-medium text-[#6B7280]">MOQ: {product.moq || 50} units</span>
+          </div>
+          <h4 className="text-lg font-medium text-[#425664] tracking-tight leading-snug line-clamp-2 min-h-[48px]">
             {product.name}
           </h4>
-          <p className="text-[10px] font-medium text-slate-muted tracking-wide">
-            Bulk ID: {product.sku || (Math.floor(Math.random() * 500) + 100) + ' units'}
-          </p>
         </div>
         
-        <div className="flex justify-between items-end">
-          <p className="text-[16px] font-black text-[#1A1A1A]">
-            ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
+        <div className="flex justify-between items-end border-t border-[#425664]/5 pt-4">
+          <div className="space-y-0.5">
+             <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-widest">Pricing Matrix</p>
+             <p className="text-xl font-bold text-[#425664]">
+               ₹{product.price.toLocaleString()}
+               <span className="text-xs font-normal text-[#6B7280] ml-1">/ unit</span>
+             </p>
+          </div>
           
-          <button 
-            className="w-10 h-10 rounded-full bg-[#EBF1EF] flex items-center justify-center text-[#1A1A1A] group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm"
-          >
-            <ShoppingCart size={16} className="fill-current group-hover:fill-none" />
-          </button>
+          <div className="flex items-center bg-[#F6F4F2] rounded-xl px-2 py-1 gap-3">
+             <button onClick={(e) => { e.preventDefault(); setQty(Math.max(product.moq || 50, qty - 10)) }} className="text-[#425664] hover:text-[#C6AD8F] font-bold text-lg">-</button>
+             <span className="text-sm font-bold text-[#425664] min-w-[30px] text-center">{qty}</span>
+             <button onClick={(e) => { e.preventDefault(); setQty(qty + 10) }} className="text-[#425664] hover:text-[#C6AD8F] font-bold text-lg">+</button>
+          </div>
         </div>
+
+        <button className="w-full bg-[#C6AD8F] text-white py-3.5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-[#425664] transition-all flex items-center justify-center gap-2 group/btn shadow-lg shadow-[#C6AD8F]/10">
+           Add to Procurement
+           <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+        </button>
       </div>
     </motion.div>
   );

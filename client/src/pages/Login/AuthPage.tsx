@@ -1,32 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/premium/Logo';
-import { ArrowRight, Loader, Lock, Mail, User, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Loader2, Lock, Mail, User, ArrowLeft, CheckCircle2, ShieldCheck, Zap, Phone, KeyRound } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
-  const { user, login, register, loading } = useAuth();
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const { login, register, loading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      if (user.role === 'ADMIN') {
-        navigate('/admin');
-      } else if (user.role === 'WORKER') {
-        navigate('/worker/orders');
-      } else {
-        navigate('/home');
-      }
-    }
-  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,200 +24,242 @@ export default function AuthPage() {
     setSuccess(false);
     
     if (isLogin) {
-      const userResult = await login(email, password);
-      if (userResult) {
-        if (userResult.role === 'ADMIN') {
+      const user = await login(email, password);
+      if (user) {
+        if (user.role === 'ADMIN') {
           navigate('/admin');
-        } else if (userResult.role === 'WORKER') {
-          navigate('/worker/orders');
         } else {
-          navigate('/home');
+          navigate('/shop');
         }
       } else {
-        setError('Incorrect email or password. Please try again.');
+        setError('Login failed. Please check your email and password.');
       }
     } else {
-      const userResult = await register(name, email, password);
-      if (userResult) {
-        setSuccess(true);
-        setTimeout(() => {
-          setIsLogin(true);
-          setSuccess(false);
-          setError('');
-        }, 2000);
+      if (!isVerifyingOTP) {
+        setIsVerifyingOTP(true);
+        return;
+      }
+
+      if (otp === '123456') { 
+         const user = await register(name, email, password);
+         if (user) {
+           setSuccess(true);
+           setTimeout(() => {
+             setIsLogin(true);
+             setIsVerifyingOTP(false);
+             setSuccess(false);
+             setError('');
+           }, 2000);
+         }
+      } else {
+         setError('Invalid OTP code. Please try again.');
       }
     }
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-white flex overflow-hidden font-sans selection:bg-primary/20"
-    >
-      {/* Visual Identity Panel (Left) */}
-      <div className="hidden lg:flex w-1/2 relative overflow-hidden flex-col justify-between p-20 bg-dark">
-         <img 
-            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200" 
-            className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale"
-            alt="HQ Architecture"
-         />
-         <div className="absolute inset-0 bg-gradient-to-br from-dark via-dark/80 to-transparent" />
+    <div className="min-h-screen bg-[#F6F4F2] flex flex-col lg:flex-row font-sans selection:bg-[#C6AD8F] selection:text-white overflow-hidden">
+      
+      {/* 1. Left Panel (Industrial Brand Narrative) */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#425664] overflow-hidden items-center justify-center">
+         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad86d7c7170a?auto=format&fit=crop&q=80&w=1200')] bg-cover bg-center mix-blend-overlay opacity-20 grayscale" />
          
-         <div className="relative z-10">
-            <Link to="/">
-               <Logo className="text-white scale-125 origin-left" />
-            </Link>
-            <div className="mt-24 space-y-4">
-               <div className="h-1 w-12 bg-primary" />
-               <h2 className="text-8xl font-black text-white leading-tight tracking-tighter uppercase font-serif">
-                  JN GLOBAL <br />
-                  <span className="text-primary italic">ENTERPRISE_</span>
+         <div className="relative z-10 p-24 space-y-12 max-w-xl text-white">
+            <div className="space-y-6">
+               <div className="w-12 h-1 bg-[#C6AD8F]" />
+               <Logo className="text-white text-3xl font-bold" />
+            </div>
+
+            <div className="space-y-6">
+               <h2 className="text-6xl font-semibold tracking-tight leading-[1.1]">
+                  {isLogin ? "Welcome Back to JN Global_" : "Join the Wholesale Network_"}
                </h2>
-               <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm leading-relaxed">
-                  The infrastructure of industrial distribution and global wholesale networking.
+               <p className="text-lg text-white/50 font-medium leading-relaxed">
+                  {isLogin 
+                    ? "Sign in to manage your wholesale orders and view the latest stock arrivals."
+                    : "Create an account to start your direct manufacturing partnership with us."}
                </p>
             </div>
-         </div>
 
-         <div className="relative z-10 pt-10 border-t border-white/10 flex justify-between items-center text-[10px] font-black text-white/20 uppercase tracking-widest">
-            <span>ISO 9001:2015 CERTIFIED</span>
-            <span>Est. 1998</span>
+            <div className="flex items-center gap-10 pt-10 border-t border-white/5">
+                <div className="flex items-center gap-3">
+                   <ShieldCheck className="text-[#C6AD8F]" size={20} />
+                   <span className="text-[12px] font-bold uppercase tracking-widest text-white/80">Secure Portal</span>
+                </div>
+                <div className="flex items-center gap-3">
+                   <Zap className="text-[#C6AD8F]" size={20} />
+                   <span className="text-[12px] font-bold uppercase tracking-widest text-white/80">Direct Factory</span>
+                </div>
+            </div>
          </div>
       </div>
 
-      {/* Form Panel (Right) */}
-      <div className="flex-1 flex flex-col justify-center px-12 md:px-24 bg-[#FDFDFD] relative">
-         <div className="max-w-md w-full mx-auto space-y-12">
-            <div className="space-y-4 text-center lg:text-left">
-               <h1 className="text-6xl font-black text-dark uppercase tracking-tighter leading-none">
-                  {isLogin ? "Login_" : "Sign Up_"}
-               </h1>
-               <p className="text-[11px] font-bold text-dark/30 uppercase tracking-[0.2em] leading-relaxed">
-                  {isLogin ? "Access your enterprise workspace." : "Create your wholesale partner account."}
+      {/* 2. Login/Register Form Section */}
+      <div className="flex-1 flex flex-col justify-center items-center px-8 sm:px-16 lg:px-32 bg-[#F6F4F2] py-20">
+         <div className="w-full max-w-md space-y-10">
+            
+            <div className="space-y-2">
+               <div className="lg:hidden mb-12">
+                  <Logo className="text-[#425664] text-2xl font-bold" />
+               </div>
+               <h3 className="text-[32px] font-semibold text-[#111827] tracking-tight">
+                  {isLogin ? "Login" : isVerifyingOTP ? "Verification" : "Create Account"}
+               </h3>
+               <p className="text-[14px] text-[#425664]/60 font-medium font-sans">
+                  {isLogin ? "Enter your details to sign in" : isVerifyingOTP ? "We've sent a code to your email and phone" : "Sign up to start buying wholesale"}
                </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-               <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+               <div className="space-y-4">
                   <AnimatePresence mode="wait">
-                     {!isLogin && (
+                     {isVerifyingOTP ? (
                         <motion.div 
-                           initial={{ opacity: 0, y: -10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           className="space-y-2"
+                          key="otp-step"
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="space-y-6"
                         >
-                           <label className="text-[10px] font-black text-dark/40 uppercase tracking-widest flex items-center gap-2">
-                              <User size={12} className="text-primary" /> Full Name
-                           </label>
-                           <input 
-                              type="text" 
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              placeholder="John Doe"
-                              className="w-full bg-white border border-dark/10 p-5 text-[14px] text-dark font-bold focus:outline-none focus:border-primary transition-all rounded-xl placeholder:text-dark/10 shadow-sm"
-                              required={!isLogin}
-                           />
+                           <div className="space-y-2">
+                              <label className="text-[11px] font-bold uppercase tracking-widest text-[#425664]/40 flex items-center gap-2">
+                                 <KeyRound size={14} className="text-[#C6AD8F]" /> Verification Code
+                              </label>
+                              <input 
+                                 type="text" 
+                                 maxLength={6}
+                                 value={otp} 
+                                 onChange={(e) => setOtp(e.target.value)}
+                                 placeholder="000000"
+                                 className="w-full bg-white border border-[#425664]/10 rounded-[16px] px-6 py-5 text-2xl font-bold tracking-[0.8em] text-center focus:outline-none focus:border-[#C6AD8F] shadow-sm transition-all text-[#111827]"
+                                 required 
+                              />
+                           </div>
+                           <p className="text-[11px] text-[#425664]/40 font-bold uppercase tracking-widest text-center">
+                              Enter <span className="text-[#425664]">123456</span> to proceed
+                           </p>
+                        </motion.div>
+                     ) : (
+                        <motion.div 
+                          key="initial-step"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="space-y-4"
+                        >
+                           {!isLogin && (
+                              <div className="space-y-2 group">
+                                 <label className="text-[11px] font-bold uppercase tracking-widest text-[#425664]/40 flex items-center gap-2">
+                                    <User size={14} className="text-[#C6AD8F]" /> name
+                                 </label>
+                                 <input 
+                                    type="text" 
+                                    value={name} 
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Enter your name"
+                                    className="w-full bg-white border border-[#425664]/10 rounded-[14px] px-6 py-4 text-[15px] font-medium focus:outline-none focus:border-[#C6AD8F] shadow-sm transition-all text-[#111827]"
+                                    required={!isLogin}
+                                 />
+                              </div>
+                           )}
+
+                           <div className="space-y-2 group">
+                              <label className="text-[11px] font-bold uppercase tracking-widest text-[#425664]/40 flex items-center gap-2">
+                                 <Mail size={14} className="text-[#C6AD8F]" /> mail
+                              </label>
+                              <input 
+                                 type="email" 
+                                 value={email} 
+                                 onChange={(e) => setEmail(e.target.value)}
+                                 placeholder="name@email.com"
+                                 className="w-full bg-white border border-[#425664]/10 rounded-[14px] px-6 py-4 text-[15px] font-medium focus:outline-none focus:border-[#C6AD8F] shadow-sm transition-all text-[#111827]"
+                                 required 
+                              />
+                           </div>
+
+                           {!isLogin && (
+                              <div className="space-y-2 group">
+                                 <label className="text-[11px] font-bold uppercase tracking-widest text-[#425664]/40 flex items-center gap-2">
+                                    <Phone size={14} className="text-[#C6AD8F]" /> phone
+                                 </label>
+                                 <input 
+                                    type="tel" 
+                                    value={phone} 
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    placeholder="+91 00000 00000"
+                                    className="w-full bg-white border border-[#425664]/10 rounded-[14px] px-6 py-4 text-[15px] font-medium focus:outline-none focus:border-[#C6AD8F] shadow-sm transition-all text-[#111827]"
+                                    required={!isLogin}
+                                 />
+                              </div>
+                           )}
+
+                           <div className="space-y-2 group">
+                              <label className="text-[11px] font-bold uppercase tracking-widest text-[#425664]/40 flex items-center gap-2">
+                                 <Lock size={14} className="text-[#C6AD8F]" /> password
+                              </label>
+                              <input 
+                                 type="password" 
+                                 value={password} 
+                                 onChange={(e) => setPassword(e.target.value)}
+                                 placeholder="••••••••"
+                                 className="w-full bg-white border border-[#425664]/10 rounded-[14px] px-6 py-4 text-[15px] font-medium focus:outline-none focus:border-[#C6AD8F] shadow-sm transition-all text-[#111827]"
+                                 required 
+                              />
+                           </div>
                         </motion.div>
                      )}
                   </AnimatePresence>
-
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-dark/40 uppercase tracking-widest flex items-center gap-2">
-                        <Mail size={12} className="text-primary" /> Email Address
-                     </label>
-                     <input 
-                        type="email" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@company.com"
-                        className="w-full bg-white border border-dark/10 p-5 text-[14px] text-dark font-bold focus:outline-none focus:border-primary transition-all rounded-xl placeholder:text-dark/10 shadow-sm"
-                        required 
-                     />
-                  </div>
-
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-dark/40 uppercase tracking-widest flex items-center gap-2">
-                        <Lock size={12} className="text-primary" /> Password
-                     </label>
-                     <div className="relative group">
-                        <input 
-                           type={showPassword ? "text" : "password"} 
-                           value={password}
-                           onChange={(e) => setPassword(e.target.value)}
-                           placeholder="********"
-                           className="w-full bg-white border border-dark/10 p-5 text-[14px] text-dark font-bold focus:outline-none focus:border-primary transition-all rounded-xl placeholder:text-dark/10 shadow-sm pr-14"
-                           required 
-                        />
-                        <button 
-                           type="button"
-                           onClick={() => setShowPassword(!showPassword)}
-                           className="absolute right-5 top-1/2 -translate-y-1/2 text-primary hover:text-dark transition-colors"
-                        >
-                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                     </div>
-                  </div>
                </div>
 
-               <div className="space-y-6">
+               <div className="space-y-6 pt-4">
                   {error && (
-                     <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="p-4 bg-red-50 border-l-4 border-red-500 text-[10px] font-black uppercase tracking-widest text-red-600"
-                     >
-                        {error}
+                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-red-400/5 border border-red-400/10 rounded-xl">
+                        <p className="text-[12px] font-bold text-red-500">{error}</p>
                      </motion.div>
                   )}
 
                   {success && (
-                     <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="p-4 bg-green-50 border-l-4 border-green-500 text-[10px] font-black uppercase tracking-widest text-green-600 flex items-center gap-3"
-                     >
-                        <CheckCircle size={14} /> Account Created Successfully
+                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-green-400/5 border border-green-400/10 rounded-xl flex items-center gap-3">
+                        <CheckCircle2 size={16} className="text-green-600" />
+                        <p className="text-[12px] font-bold text-green-600">Account Created Successfully</p>
                      </motion.div>
                   )}
 
                   <button 
                      type="submit"
                      disabled={loading}
-                     className="w-full h-20 bg-primary text-white rounded-xl text-[14px] font-black tracking-widest uppercase hover:bg-dark transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-6 disabled:opacity-50"
+                     className="w-full bg-[#111827] text-white py-4.5 rounded-[14px] text-[15px] font-semibold flex items-center justify-center gap-3 hover:bg-black transition-all shadow-lg active:scale-[0.98] group"
                   >
-                     {loading ? <Loader className="animate-spin" size={20} /> : (
+                     {loading ? <Loader2 className="animate-spin" size={18} /> : (
                         <>
-                           {isLogin ? "Login" : "Create Account"}
-                           <ArrowRight size={20} />
+                           <span>{isLogin ? "Login" : isVerifyingOTP ? "Verify Details" : "Create Account"}</span>
+                           <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </>
                      )}
                   </button>
 
-                  <button 
-                     type="button"
-                     onClick={() => {
-                        setIsLogin(!isLogin);
-                        setError('');
-                        setSuccess(false);
-                     }}
-                     className="w-full text-center"
-                  >
-                     <span className="text-[10px] font-black text-dark/20 uppercase tracking-widest hover:text-primary transition-colors">
-                        {isLogin ? "Need an account? Sign Up" : "Back to Login"}
-                     </span>
-                  </button>
+                  {!isVerifyingOTP && (
+                    <button 
+                       type="button"
+                       onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess(false); }}
+                       className="w-full py-2 text-[14px] font-medium text-[#425664]/60 hover:text-[#111827] transition-all flex items-center justify-center gap-2"
+                    >
+                       {isLogin ? "New here? Create an account" : "Already have an account? Login"}
+                    </button>
+                  )}
+
+                  {isVerifyingOTP && (
+                    <button 
+                       type="button"
+                       onClick={() => setIsVerifyingOTP(false)}
+                       className="w-full py-2 text-[13px] font-medium text-[#425664]/40 hover:text-[#425664] transition-all flex items-center justify-center gap-2"
+                    >
+                       <ArrowLeft size={14} /> Back to details
+                    </button>
+                  )}
                </div>
             </form>
-            
-               <div className="pt-8 border-t border-dark/5 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-40">
-                  <span className="text-[9px] font-black uppercase tracking-widest">Help: admin@jn.com (Admin) | worker@jn.com (Worker)</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest">Pass: admin123</span>
-               </div>
+
          </div>
       </div>
-      <div className="fixed inset-0 pointer-events-none opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
-    </motion.div>
+    </div>
   );
 }

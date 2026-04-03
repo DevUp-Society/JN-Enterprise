@@ -1,23 +1,5 @@
 [
   {
-    "id": "PROD-CRITICAL-001",
-    "name": "Luxury Silk Blazer",
-    "price": 8500,
-    "category": "Suits",
-    "stock": 4,
-    "sizes": ["S", "M", "L", "XL"],
-    "image": "https://picsum.photos/seed/88/400/500"
-  },
-  {
-    "id": "PROD-OUT-001",
-    "name": "Heritage Wool Coat",
-    "price": 12400,
-    "category": "Outerwear",
-    "stock": 0,
-    "sizes": ["M", "L"],
-    "image": "https://picsum.photos/seed/99/400/500"
-  },
-  {
     "id": "PROD-0001",
     "name": "Shirts Piece #1",
     "price": 1519,

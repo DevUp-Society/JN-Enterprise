@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Minus, Plus, ShoppingCart } from 'lucide-react';
-import { useCart } from '../../store/CartContext';
 
 interface MatrixRow {
   size: string;
@@ -8,12 +7,7 @@ interface MatrixRow {
   qty: number;
 }
 
-interface QuickOrderMatrixProps {
-  product?: any;
-}
-
-export const QuickOrderMatrix = ({ product }: QuickOrderMatrixProps) => {
-  const { addItem } = useCart();
+export const QuickOrderMatrix = () => {
   const [rows, setRows] = useState<MatrixRow[]>([
     { size: 'S', stock: 120, qty: 0 },
     { size: 'M', stock: 240, qty: 0 },
@@ -29,19 +23,6 @@ export const QuickOrderMatrix = ({ product }: QuickOrderMatrixProps) => {
   };
 
   const totalQty = rows.reduce((acc, row) => acc + row.qty, 0);
-
-  const handlePushToCart = () => {
-    if (totalQty < 1) return;
-    
-    const sizeQuantities: Record<string, number> = {};
-    rows.forEach(row => {
-      if (row.qty > 0) sizeQuantities[row.size] = row.qty;
-    });
-
-    addItem(product, sizeQuantities);
-    // Reset quantities after push
-    setRows(prev => prev.map(r => ({ ...r, qty: 0 })));
-  };
 
   return (
     <div className="bg-white border border-slate/10 p-8 space-y-8 shadow-sm">
@@ -63,22 +44,19 @@ export const QuickOrderMatrix = ({ product }: QuickOrderMatrixProps) => {
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => updateQty(i, -1)}
-                className="w-8 h-8 flex items-center justify-center border border-slate/10 hover:bg-slate hover:text-white transition-all transition-colors"
+                className="w-8 h-8 flex items-center justify-center border border-slate/10 hover:bg-slate hover:text-white transition-all"
               >
                 <Minus size={12} />
               </button>
               <input 
                 type="number" 
                 value={row.qty}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value) || 0;
-                  setRows(prev => prev.map((r, idx) => idx === i ? { ...r, qty: Math.max(0, Math.min(row.stock, val)) } : r));
-                }}
+                onChange={(e) => updateQty(i, parseInt(e.target.value) || 0)}
                 className="w-12 text-center text-[11px] font-black text-slate focus:outline-none bg-bone/20 p-2 border border-transparent focus:border-gold"
               />
               <button 
                 onClick={() => updateQty(i, 1)}
-                className="w-8 h-8 flex items-center justify-center border border-slate/10 hover:bg-slate hover:text-white transition-all transition-colors"
+                className="w-8 h-8 flex items-center justify-center border border-slate/10 hover:bg-slate hover:text-white transition-all"
               >
                 <Plus size={12} />
               </button>
@@ -93,11 +71,7 @@ export const QuickOrderMatrix = ({ product }: QuickOrderMatrixProps) => {
            <span className="text-xl font-black text-slate">{totalQty} Units</span>
         </div>
         
-        <button 
-           onClick={handlePushToCart}
-           disabled={totalQty < 1}
-           className="w-full h-12 bg-slate text-bone text-[10px] font-black uppercase tracking-widest-xl hover:bg-gold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 shadow-lg group"
-        >
+        <button className="w-full h-12 bg-slate text-bone text-[10px] font-black uppercase tracking-widest-xl hover:bg-gold transition-all flex items-center justify-center gap-3 shadow-lg group">
            Push to Matrix <ShoppingCart size={16} className="group-hover:scale-110 transition-transform" />
         </button>
       </div>

@@ -1,178 +1,138 @@
-import { RetailerPortalHeader } from '../../components/navigation/RetailerPortalHeader';
-import { Trash2, ShoppingBag, ArrowRight, Package, Truck, FileText } from 'lucide-react';
-import { useCart } from '../../store/CartContext';
+import { 
+  Trash2, 
+  Minus, 
+  Plus, 
+  ShoppingCart, 
+  ArrowRight, 
+  FileText, 
+  Zap
+} from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import ArchitecturalEmptyState from '../../components/feedback/ArchitecturalEmptyState';
 
 export default function CartPage() {
-  const { cart, totalQty, totalPrice, removeItem } = useCart();
-  const totalWeight = cart.length * 5.2; // Simulating weight calculation
+  const [cartItems, setCartItems] = useState([
+    { id: "1", name: "Industrial Zinc-Coated Wall Hooks", price: 2450, quantity: 100, moq: 50, image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&q=80&w=400" },
+    { id: "3", name: "Cotton Blend Crew Socks", price: 1200, quantity: 50, moq: 50, image: "https://images.unsplash.com/photo-1582966298431-99c6a1e8eb8a?auto=format&fit=crop&q=80&w=400" }
+  ]);
+
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * (item.quantity / 50)), 0);
+  const logistics = subtotal * 0.05;
+  const total = subtotal + logistics;
+
+  const updateQuantity = (id: string, delta: number) => {
+    setCartItems(items => items.map(item => 
+      item.id === id ? { ...item, quantity: Math.max(item.moq, item.quantity + delta) } : item
+    ));
+  };
+
+  const removeItem = (id: string) => {
+    setCartItems(items => items.filter(item => item.id !== id));
+  };
 
   return (
-    <div className="min-h-screen bg-bone text-primary font-sans selection:bg-primary/20 pb-40">
-      <RetailerPortalHeader />
-      
-      <main className="max-w-[1700px] mx-auto px-12 py-32 space-y-16">
-        <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-primary/10 pb-8">
-           <div className="space-y-4">
-              <h1 className="text-6xl font-black tracking-tighter uppercase leading-none">PROCUREMENT TRAY_</h1>
-              <p className="text-[14px] font-black text-primary/40 tracking-[0.4em] uppercase">Enterprise Batch Reservation Node</p>
-           </div>
-           <div className="text-right opacity-20 text-[10px] font-bold uppercase tracking-widest hidden md:block">
-              Registry UID: {Math.random().toString(36).substring(7).toUpperCase()}
-           </div>
+    <div className="bg-[#F6F4F2] min-h-screen">
+      <main className="max-w-[1400px] mx-auto px-8 pt-[120px] pb-32 space-y-12">
+        
+        {/* Cart Header */}
+        <div className="flex flex-col md:flex-row justify-between items-end border-b border-[#425664]/10 pb-8">
+           <h1 className="text-3xl font-bold text-[#425664] tracking-tight lowercase pt-2 leading-tight">
+              shopping cart
+           </h1>
         </div>
 
-        {cart.length === 0 ? (
-          <ArchitecturalEmptyState 
-            icon={ShoppingBag}
-            title="REGISTRY INACTIVE"
-            subtitle="YOUR PROCUREMENT RESERVATION NODE IS CURRENTLY EMPTY. INITIALIZE YOUR FLOW FROM THE INDUSTRIAL CATALOG."
-            actionText="RETURN TO ARCHIVE"
-            actionPath="/shop"
-          />
-        ) : (
-          <div className="grid lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-2 space-y-12">
-               {/* Wholesale Matrix Table */}
-               <div className="bg-white border border-primary/5 shadow-sm">
-                  <table className="w-full text-left border-collapse">
-                     <thead>
-                        <tr className="bg-bone border-b border-primary/5 text-[10px] font-black uppercase tracking-widest text-primary/30">
-                           <th className="px-10 py-8">Procurement item</th>
-                           <th className="px-10 py-8 text-center">Batch Matrix</th>
-                           <th className="px-10 py-8 text-right">Batch total</th>
-                           <th className="px-6 py-8"></th>
-                        </tr>
-                     </thead>
-                     <tbody className="divide-y divide-primary/5">
-                        {cart.map((item) => (
-                          <tr key={item.sku} className="group hover:bg-bone transition-colors">
-                             <td className="px-10 py-12">
-                                <div className="flex gap-8 items-center">
-                                   <div className="w-20 h-28 bg-bone border border-primary/5 shrink-0 overflow-hidden">
-                                      <img src={item.image} className="w-full h-full object-cover grayscale-[0.2] transition-transform duration-500 group-hover:scale-110" alt={item.name} />
-                                   </div>
-                                   <div className="space-y-2">
-                                      <p className="text-[9px] font-black text-primary/30 tracking-widest uppercase">{item.sku}</p>
-                                      <p className="font-black uppercase tracking-tight text-xl leading-none">{item.name}</p>
-                                   </div>
-                                </div>
-                             </td>
-                             <td className="px-10 py-12">
-                                <div className="flex flex-wrap justify-center gap-2">
-                                   {Object.entries(item.sizeQuantities).map(([size, qty]) => (
-                                     <div key={size} className="px-4 py-2 bg-bone border border-primary/5 flex flex-col items-center min-w-[50px]">
-                                        <span className="text-[10px] font-black text-primary/30">{size}</span>
-                                        <span className="text-[12px] font-black text-primary">{qty}</span>
-                                     </div>
-                                   ))}
-                                </div>
-                             </td>
-                             <td className="px-10 py-12 text-right">
-                                <div className="space-y-1">
-                                   <p className="text-[9px] font-black text-primary/30 uppercase tracking-widest">Total Value</p>
-                                   <p className="font-black text-2xl tracking-tighter text-primary">
-                                      ${(item.price * Object.values(item.sizeQuantities).reduce((a, b) => a + b, 0)).toLocaleString()}
-                                   </p>
-                                </div>
-                             </td>
-                             <td className="px-6 py-12">
-                                <button 
-                                  onClick={() => removeItem(item.sku)}
-                                  className="p-3 text-primary/20 hover:text-red-500 transition-colors"
-                                >
-                                   <Trash2 size={18} />
-                                </button>
-                             </td>
-                          </tr>
-                        ))}
-                     </tbody>
-                  </table>
-               </div>
+        {cartItems.length > 0 ? (
+           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+              {/* Items List */}
+              <div className="lg:col-span-8 space-y-6">
+                 {cartItems.map((item) => (
+                    <div key={item.id} className="bg-white p-8 rounded-[40px] border border-[#425664]/5 shadow-sm flex flex-col md:flex-row items-center gap-10 group hover:border-[#C6AD8F]/30 transition-all duration-500">
+                       <div className="w-40 h-40 rounded-3xl overflow-hidden bg-[#F6F4F2] p-4 flex-shrink-0 group-hover:p-2 transition-all">
+                          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                       </div>
+                       
+                       <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-3 text-xs font-semibold text-[#C6AD8F] uppercase tracking-widest">
+                             <span>Asset #B-{item.id}00-X</span>
+                             <span className="w-1 h-1 rounded-full bg-[#C6AD8F]/30" />
+                             <span>MOQ Verified</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-[#425664] tracking-tight">{item.name}</h3>
+                          <p className="text-base font-semibold text-[#425664]">₹{item.price.toLocaleString()} <span className="text-xs font-medium text-[#6B7280]">/ Base Batch</span></p>
+                       </div>
 
-               {/* Metrics Panel */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[
-                    { label: "Total Asset Units", val: totalQty, icon: Package },
-                    { label: "Metric Volume", val: `${totalWeight.toFixed(1)}kg`, icon: Truck },
-                    { label: "Protocol Status", val: "APPROVED", icon: ShieldCheck, color: "text-primary" }
-                  ].map((stat, i) => (
-                     <div key={i} className="p-10 bg-white border border-primary/5 space-y-6 shadow-sm hover:translate-y-[-5px] transition-transform">
-                        <stat.icon size={24} className="text-primary/20" />
-                        <div className="space-y-1">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-primary/30">{stat.label}</p>
-                           <p className={`text-4xl font-black ${stat.color || 'text-primary'}`}>{stat.val}</p>
-                        </div>
-                     </div>
-                  ))}
+                       <div className="flex flex-col items-center gap-4">
+                          <div className="flex items-center gap-4 bg-[#F6F4F2] p-1.5 rounded-2xl border border-[#425664]/5">
+                             <button onClick={() => updateQuantity(item.id, -50)} className="w-10 h-10 flex items-center justify-center text-[#425664] hover:bg-white rounded-xl transition-all"><Minus size={16} /></button>
+                             <span className="text-[16px] font-bold text-[#111827] w-14 text-center">{item.quantity}</span>
+                             <button onClick={() => updateQuantity(item.id, 50)} className="w-10 h-10 flex items-center justify-center text-[#425664] hover:bg-white rounded-xl transition-all"><Plus size={16} /></button>
+                          </div>
+                          <p className="text-[10px] font-black text-[#425664]/30 uppercase tracking-widest">Quantity (Units)</p>
+                       </div>
+
+                       <div className="text-right min-w-[120px]">
+                          <p className="text-[24px] font-bold text-[#111827] tracking-tighter">₹{(item.price * (item.quantity / 50)).toLocaleString()}</p>
+                          <button onClick={() => removeItem(item.id)} className="text-[#425664]/30 hover:text-red-500 transition-colors mt-2 p-2 rounded-full hover:bg-red-50">
+                             <Trash2 size={18} />
+                          </button>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+
+              {/* Order Summary */}
+              <div className="lg:col-span-4 space-y-8 sticky top-32">
+                 <div className="bg-[#425664] text-white p-10 rounded-[60px] shadow-2xl shadow-[#425664]/20 space-y-10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
+                    
+                    <h2 className="text-2xl font-bold tracking-tight border-b border-white/10 pb-6">Finalized Summary_</h2>
+                    
+                    <div className="space-y-6">
+                       <div className="flex justify-between items-center opacity-60">
+                          <span className="text-[13px] font-semibold uppercase tracking-widest">Base Requisition</span>
+                          <span className="text-[18px] font-bold">₹{subtotal.toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between items-center opacity-60">
+                          <span className="text-[13px] font-semibold uppercase tracking-widest">Logistics Link</span>
+                          <span className="text-[18px] font-bold">₹{logistics.toLocaleString()}</span>
+                       </div>
+                       <div className="pt-6 border-t border-white/10">
+                          <div className="flex justify-between items-end">
+                             <div className="space-y-1">
+                                <span className="text-[11px] font-black text-[#C6AD8F] uppercase tracking-[0.2em]">Total Commercial Value</span>
+                                <p className="text-5xl font-bold tracking-tighter">₹{total.toLocaleString()}</p>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <Link to="/checkout" className="w-full bg-[#C6AD8F] text-white py-8 rounded-[40px] font-semibold uppercase text-sm tracking-widest hover:bg-[#B89672] transition-all flex items-center justify-center gap-4 group">
+                       Proceed to Payment <Zap size={20} fill="white" className="group-hover:scale-125 transition-transform" />
+                    </Link>
+                    
+                    <button className="w-full bg-white/5 border border-white/10 text-white/50 py-6 rounded-[32px] font-bold uppercase text-[11px] tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-3">
+                       <FileText size={16} /> Export Draft Invoice
+                    </button>
+                  </div>
                </div>
             </div>
-
-            {/* Procurement Summary */}
-            <aside className="space-y-12">
-               <div className="bg-primary p-12 shadow-2xl relative overflow-hidden border-b-8 border-gold">
-                  <div className="relative z-10 space-y-12">
-                     <div className="space-y-4">
-                        <p className="text-[11px] font-black tracking-widest uppercase text-white/30">Aggregate Fulfillment Net</p>
-                        <h4 className="text-7xl font-black tracking-tighter text-white leading-none">${totalPrice.toLocaleString()}</h4>
-                     </div>
-                     
-                     <div className="space-y-8 border-t border-white/10 pt-12">
-                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
-                           <span className="text-white/30">Bulk Capacity</span>
-                           <span className="text-white">{totalQty} Units</span>
-                        </div>
-                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
-                           <span className="text-white/30">Logistics Node</span>
-                           <span className="text-gold">FREE FREIGHT (verified)</span>
-                        </div>
-                     </div>
-
-                     <div className="space-y-4 pt-4">
-                        <Link 
-                          to="/checkout"
-                          className="w-full h-20 bg-white text-primary text-[12px] font-black uppercase tracking-widest-xl hover:bg-gold hover:text-white transition-all flex items-center justify-center gap-4 shadow-2xl"
-                        >
-                           INITIALIZE REGISTRY <ArrowRight size={20} />
-                        </Link>
-                        <button className="w-full h-16 bg-white/5 text-white/40 border border-white/10 text-[11px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-4">
-                           <FileText size={18} /> DOWNLOAD QUOTE (MOCK)
-                        </button>
-                     </div>
-                  </div>
-                  {/* Grid Pattern Background */}
-                  <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-               </div>
-
-               <div className="px-10 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary/20 leading-relaxed italic">
-                     Verification by internal workforce is required prior to industrial terminal dispatch.
-                  </p>
-               </div>
-            </aside>
-          </div>
+         ) : (
+           <div className="py-60 text-center space-y-10 bg-white border border-[#425664]/5 rounded-[60px] shadow-sm">
+              <div className="w-40 h-40 rounded-full bg-[#F6F4F2] flex items-center justify-center mx-auto mb-4 border border-[#425664]/5">
+                 <ShoppingCart size={80} className="text-[#425664]/10" />
+              </div>
+              <div className="space-y-4">
+                 <h3 className="text-4xl font-bold tracking-tighter text-[#425664]/20 uppercase">Procurement Vault Empty_</h3>
+                 <p className="text-[14px] font-medium text-[#6B7280] uppercase tracking-widest max-w-xs mx-auto leading-relaxed">No wholesale assets have been batched for the current commercial session.</p>
+                 <div className="pt-8">
+                    <Link to="/home" className="inline-flex items-center gap-3 text-[#C6AD8F] font-black uppercase text-[12px] tracking-widest hover:gap-5 transition-all">
+                       Initialize Product Requisition <ArrowRight size={16} />
+                    </Link>
+                 </div>
+              </div>
+           </div>
         )}
       </main>
     </div>
-  );
-}
-
-function ShieldCheck({ size, className }: any) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2.5" 
-      strokeLinecap="square" 
-      strokeLinejoin="inherit" 
-      className={className}
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
   );
 }

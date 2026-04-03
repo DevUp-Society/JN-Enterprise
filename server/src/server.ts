@@ -30,7 +30,10 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5174',
-  'http://localhost:5175'
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'http://localhost:5177',
+  'http://localhost:5178'
 ];
 
 app.use(cors({
@@ -57,6 +60,7 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'UP',
     identity: 'JN_ENTERPRISE_CORE',
+    message: 'Server is running with Product Engine ready',
     timestamp: new Date().toISOString(),
   });
 });
