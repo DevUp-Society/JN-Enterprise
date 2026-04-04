@@ -1,0 +1,269 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  phone     String?
+  address   String?
+  role      Role     @default(WORKER)
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // High-fidelity RBAC
+  isSuperAdmin Boolean @default(false)
+  permissions  Permissions?
+  
+  // Enterprise Relations
+  company   Company? @relation(fields: [companyId], references: [id])
+  companyId String?
+
+  // Industrial Relations
+  createdProducts Product[] @relation("AdminCreator")
+  assignedTasks  Task[]    @relation("TaskAssignee")
+  storedCarts    StoredCart[]
+  wishlistItems  WishlistItem[]
+  orders         Order[]
+}
+
+model Permissions {
+  id               String  @id @default(uuid())
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String  @unique
+  
+  // Granular Access Flags
+  canViewInventory  Boolean @default(true)
+  canManageProducts Boolean @default(true)
+  canManageOrders   Boolean @default(true)
+  canViewAnalytics  Boolean @default(true)
+  canManageUsers    Boolean @default(false)
+  canManagePartners Boolean @default(false)
+  canManageAdmins   Boolean @default(false)
+}
+
+model Company {
+  id        String      @id @default(uuid())
+  name      String
+  tier      PricingTier @default(STANDARD)
+  users     User[]
+  orders    Order[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum PricingTier {
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+}
+
+model Category {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  logoUrl    String?
+  orderIndex Int       @default(0)
+  isActive   Boolean   @default(true)
+  products   Product[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  sku           String   @unique
+  description   String?
+  image         String?
+  price         Decimal
+  stockQuantity Int      @default(0)
+  minThreshold  Int      @default(5)
+  
+  // High-end Relations
+  category      Category @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  
+  createdBy     User     @relation("AdminCreator", fields: [creatorId], references: [id])
+  creatorId     String
+  
+  tasks         Task[]
+  inventoryLogs InventoryLog[]
+  orderItems    OrderItem[]
+  storedCartItems StoredCartItem[]
+  wishlistItems WishlistItem[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  version       Int      @default(0)
+
+  @@index([sku])
+  @@index([name])
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  priority    Priority   @default(MEDIUM)
+  status      TaskStatus @default(PENDING)
+  
+  // Control Tower Relations
+  assignee    User       @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  assigneeId  String
+  
+  product     Product    @relation(fields: [productId], references: [id])
+  productId   String
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([priority])
+  @@index([status])
+}
+
+model InventoryLog {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  taskId      String?
+  type        LogType
+  quantity    Int
+  reason      String
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique @default(cuid())
+  company         Company     @relation(fields: [companyId], references: [id])
+  companyId       String
+  user            User        @relation(fields: [userId], references: [id])
+  userId          String
+  status          OrderStatus @default(PENDING)
+  totalValue      Decimal
+  
+  // Fulfillment Details
+  managerName     String?
+  hubIdentifier   String?
+  shippingAddress String?
+  contactPhone    String?
+  
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  pricePaid Decimal
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  WORKER
+  RETAILER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum LogType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String   // e.g., 'STOCK_UPDATE', 'CONFLICT_DETECTED'
+  userId    String
+  details   Json
+  timestamp DateTime @default(now())
+
+  @@index([action])
+  @@index([userId])
+}
+
+model StoredCart {
+  id        String           @id @default(uuid())
+  name      String
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  items     StoredCartItem[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model StoredCartItem {
+  id        String     @id @default(uuid())
+  cart      StoredCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId    String
+  product   Product    @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int        @default(1)
+  size      String     @default("OS")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
