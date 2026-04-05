@@ -3,13 +3,9 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/admin/Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMobile } from '../hooks/useMobile';
-import BottomNavbar from './BottomNavbar';
+import { BottomNavbar } from '../components/navigation/BottomNavbar';
+import { MobileHeader } from '../components/navigation/MobileHeader';
 import { 
-  LayoutGrid, 
-  Package, 
-  Users, 
-  ShoppingBag, 
-  Settings,
   Bell,
   X
 } from 'lucide-react';
@@ -34,14 +30,6 @@ export default function AdminLayout() {
       document.documentElement.classList.remove('dark');
     }
   }, []);
-
-  const navItems = [
-    { id: 'overview', icon: LayoutGrid, label: 'OVERVIEW', path: '/admin/overview' },
-    { id: 'inventory', icon: Package, label: 'INVENTORY', path: '/admin/inventory' },
-    { id: 'orders', icon: ShoppingBag, label: 'ORDERS', path: '/admin/orders', notification: issuesCount > 0 ? true : false },
-    { id: 'partners', icon: Users, label: 'PARTNERS', path: '/admin/partners' },
-    { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
-  ];
 
   return (
     <div className="flex min-h-screen bg-[#D6D6D6] font-sans text-black selection:bg-[#000000] selection:text-[#D6D6D6] transition-colors overflow-x-hidden">
@@ -117,22 +105,9 @@ export default function AdminLayout() {
       {/* Desktop Sidebar */}
       {!isMobile && <Sidebar issuesCount={issuesCount} />}
 
-      <main className={`flex-1 transition-all duration-500 shadow-sm ${isMobile ? 'p-4 pt-24 pb-32' : 'ml-64 p-8 pt-8'}`}>
-         {/* Mobile Header / Logo */}
-         {isMobile && (
-            <div className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 z-50 border-b border-[#FFFFFF]/5">
-            <h1 className="text-sm font-bold tracking-widest text-black uppercase text-center flex-1">JN Enterprise</h1>
-            <button 
-               onClick={() => setIsNotificationsOpen(true)}
-               className="relative p-2 rounded-full hover:bg-[#D6D6D6] transition-colors"
-            >
-               <Bell size={20} className="text-black" />
-               {(broadcast?.active || issuesCount > 0) && (
-                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#000000] rounded-full border-2 border-white" />
-               )}
-            </button>
-            </div>
-         )}
+      <main className={`flex-1 transition-all duration-500 shadow-sm ${isMobile ? 'p-4 pt-24 pb-32' : 'ml-56 p-8 pt-8'}`}>
+         {/* Mobile Native Header */}
+         {isMobile && <MobileHeader />}
 
          <AnimatePresence mode="wait">
           <motion.div
@@ -149,7 +124,7 @@ export default function AdminLayout() {
       </main>
 
       {/* Mobile Navigation */}
-      {isMobile && <BottomNavbar items={navItems} />}
+      {isMobile && <BottomNavbar />}
     </div>
   );
 }

@@ -26,7 +26,7 @@ router.patch('/categories/:id', verifyToken, isAdmin, updateCategory);
 router.delete('/categories/:id', verifyToken, isAdmin, deleteCategory);
 router.put('/categories/reorder', verifyToken, isAdmin, reorderCategories);
 
-router.post('/', verifyToken, isAdmin, upload.single('image'), validateRequest(productSchema), createProduct);
-router.patch('/:id', verifyToken, isAdmin, validateRequest(productSchema), updateProduct);
+router.post('/', verifyToken, isAdmin, upload.array('image', 4), validateRequest(productSchema), createProduct);
+router.patch('/:id', verifyToken, isAdmin, upload.array('image', 4), validateRequest(productSchema), updateProduct);
 
 export default router;

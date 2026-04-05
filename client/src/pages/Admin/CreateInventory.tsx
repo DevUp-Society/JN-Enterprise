@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronRight, 
-  Upload, 
   Plus, 
   Trash2, 
   ArrowLeft,
@@ -38,11 +36,17 @@ export default function CreateInventory() {
     { size: 'S', price: 0, qty: 0 }
   ]);
   
-  // Media Reference
-  const [mainImage, setMainImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  // Refactored Media State: 4 explicit slots
+  const [slots, setSlots] = useState<(File | null)[]>([null, null, null, null]);
+  const [previews, setPreviews] = useState<(string | null)[]>([null, null, null, null]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
+  // Dynamic Specs Logic
+  const [specs, setSpecs] = useState<{key: string, value: string}[]>([
+    { key: '', value: '' }
+  ]);
 
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -58,12 +62,37 @@ export default function CreateInventory() {
     fetchCats();
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSlotUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      setMainImage(URL.createObjectURL(file));
+      const newSlots = [...slots];
+      newSlots[index] = file;
+      setSlots(newSlots);
+
+      const newPreviews = [...previews];
+      if (newPreviews[index]) URL.revokeObjectURL(newPreviews[index]!);
+      newPreviews[index] = URL.createObjectURL(file);
+      setPreviews(newPreviews);
     }
+  };
+
+  const removeSlot = (index: number) => {
+    const newSlots = [...slots];
+    newSlots[index] = null;
+    setSlots(newSlots);
+
+    const newPreviews = [...previews];
+    if (newPreviews[index]) URL.revokeObjectURL(newPreviews[index]!);
+    newPreviews[index] = null;
+    setPreviews(newPreviews);
+  };
+
+  const addSpec = () => setSpecs([...specs, { key: '', value: '' }]);
+  const removeSpec = (index: number) => setSpecs(specs.filter((_, i) => i !== index));
+  const updateSpec = (index: number, field: 'key' | 'value', val: string) => {
+    const next = [...specs];
+    next[index][field] = val;
+    setSpecs(next);
   };
 
   const addVariantRow = () => {
@@ -82,17 +111,19 @@ export default function CreateInventory() {
 
   const totals = useMemo(() => {
     if (hasDifferentSizes === false) {
-      return { price: basePrice, qty: baseQty };
+      return { price: basePrice || 0, qty: baseQty || 0 };
     }
-    const totalQty = variantRows.reduce((acc, r) => acc + Number(r.qty), 0);
-    const avgPrice = isConstantPrice ? basePrice : (variantRows.reduce((acc, r) => acc + Number(r.price), 0) / (variantRows.length || 1));
+    const totalQty = variantRows.reduce((acc, r) => acc + Number(r.qty || 0), 0);
+    const avgPrice = isConstantPrice ? (basePrice || 0) : (variantRows.reduce((acc, r) => acc + Number(r.price || 0), 0) / (variantRows.length || 1));
     return { price: avgPrice, qty: totalQty };
   }, [hasDifferentSizes, isConstantPrice, basePrice, baseQty, variantRows]);
 
   const handleSync = async () => {
     if (!name.trim()) return alert('REQUIRED: PRODUCT_NAME');
     if (!category) return alert('REQUIRED: CATEGORICAL_TIER');
-    if (!imageFile) return alert('REQUIRED: PRIMARY_MEDIA_ASSET');
+    
+    const activeSlots = slots.filter(s => s !== null);
+    if (activeSlots.length === 0) return alert('REQUIRED: PRIMARY_MEDIA_ASSET');
     
     if (hasDifferentSizes === null) return alert('VALUATION_ERROR: SIZE_LOGIC_UNDEFINED');
     
@@ -102,11 +133,19 @@ export default function CreateInventory() {
       formData.append('name', name);
       formData.append('description', description);
       formData.append('categoryId', category);
-      formData.append('price', totals.price.toString());
-      formData.append('stockQuantity', totals.qty.toString());
+      formData.append('price', (totals.price || 0).toString());
+      formData.append('stockQuantity', (totals.qty || 0).toString());
       formData.append('sku', `SKU-${Math.floor(1000 + Math.random() * 9000)}`);
       formData.append('minThreshold', '5');
-      formData.append('image', imageFile);
+      
+      // Append all active image slots
+      activeSlots.forEach((file) => {
+        if (file) formData.append('image', file);
+      });
+
+      // Append specs as stringified JSON
+      const filteredSpecs = specs.filter(s => s.key && s.value);
+      formData.append('specs', JSON.stringify(filteredSpecs));
 
       await axiosInstance.post('/products', formData, {
         headers: {
@@ -114,7 +153,8 @@ export default function CreateInventory() {
         },
       });
       
-      setTimeout(() => navigate('/admin/inventory'), 1000);
+      setShowSuccess(true);
+      setTimeout(() => navigate('/admin/inventory'), 2500);
     } catch (err: any) {
       console.error('SYNC_FAILURE', err);
     } finally {
@@ -123,354 +163,251 @@ export default function CreateInventory() {
   };
 
   return (
-    <div className="space-y-12 pb-32 select-none px-4 md:px-0">
-      <header className="flex flex-col gap-6 border-b border-[#000000]/10 pb-8 mt-4">
+    <div className="space-y-12 pb-32 px-4 md:px-0 bg-[#F5F5F5] min-h-screen">
+      <header className="flex flex-col gap-6 border-b border-[#000000]/5 pb-8 pt-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
-           <h1 className="text-3xl font-black text-[#000000] tracking-tight uppercase">
-              Add New Registry_
-           </h1>
+           <div>
+              <h1 className="text-4xl font-black text-[#000000] tracking-tighter uppercase leading-none">Add New Product</h1>
+              <p className="text-[10px] font-bold text-[#000000]/40 uppercase tracking-[0.4em] mt-2">Industrial Registry Protocol</p>
+           </div>
            <button 
               onClick={() => navigate('/admin/inventory')}
-              className="px-10 h-14 bg-white border-2 border-[#000000]/5 rounded-[24px] flex items-center justify-center gap-4 text-[11px] font-black text-[#000000]/40 hover:text-[#000000] hover:bg-[#D6D6D6] transition-all shadow-sm uppercase tracking-widest active:scale-95"
+              className="px-8 h-12 bg-white border border-[#000000]/10 rounded-full flex items-center justify-center gap-3 text-[10px] font-black text-[#000000]/60 hover:bg-black hover:text-white transition-all shadow-sm uppercase tracking-widest active:scale-95"
            >
-              <ArrowLeft size={18} />
-              Return to Catalog
+              <ArrowLeft size={14} /> Back to Catalog
            </button>
         </div>
       </header>
 
-      <main className="space-y-24">
+      <main className="max-w-7xl mx-auto space-y-16">
         
-        {/* BASIC DETAILS */}
-        <section className="space-y-10">
+        {/* DETAILS OF PRODUCT */}
+        <section className="bg-white p-10 rounded-[40px] border border-[#000000]/5 shadow-sm space-y-10">
            <div className="flex items-center gap-4">
-              <div className="w-1.5 h-6 bg-[#FFFFFF] rounded-full" />
-              <h3 className="text-[10px] font-black text-[#000000]/30 uppercase tracking-[0.5em]">Institutional Identifiers</h3>
+              <div className="w-1 h-8 bg-black rounded-full" />
+              <h3 className="text-[11px] font-black text-black uppercase tracking-[0.4em]">Details of Product</h3>
            </div>
            
-           <div className="space-y-12 pl-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-4">
-                 <label className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] ml-2">Product nomenclature_</label>
+                 <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Product Nomenclature</label>
                  <input 
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="ENTER_PRODUCT_TITLE..."
-                    className="w-full h-16 bg-[#D6D6D6]/30 border-2 border-transparent rounded-[24px] px-8 text-sm font-black text-[#000000] focus:outline-none focus:border-[#000000]/10 focus:bg-white transition-all placeholder:text-[#000000]/20 shadow-inner uppercase tracking-wider"
+                   type="text"
+                   value={name}
+                   onChange={(e) => setName(e.target.value)}
+                   placeholder="Enter unit name..."
+                   className="w-full h-14 bg-[#F9F9F9] border border-black/5 rounded-2xl px-6 text-sm font-bold text-black focus:outline-none focus:border-black/20 transition-all placeholder:text-black/10"
                  />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                 <div className="space-y-4">
-                    <label className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] ml-2">Technical Specification_</label>
-                    <textarea 
-                       value={description}
-                       onChange={(e) => setDescription(e.target.value)}
-                       placeholder="SPECIFY_UNIT_TECHNICAL_PARAMETERS..."
-                       className="w-full h-48 bg-[#D6D6D6]/30 border-2 border-transparent rounded-[32px] p-8 text-sm font-bold text-[#000000] focus:outline-none focus:border-[#000000]/10 focus:bg-white transition-all placeholder:text-[#000000]/10 shadow-inner resize-none uppercase"
-                    />
-                 </div>
-                 <div className="space-y-4">
-                    <label className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] ml-2">Categorical Tier_</label>
-                    <div className="relative">
-                       <select 
-                          value={category}
-                          onChange={(e) => setCategory(e.target.value)}
-                          className="w-full h-16 bg-[#D6D6D6]/30 border-2 border-transparent rounded-[24px] px-8 text-sm font-black text-[#000000] appearance-none focus:outline-none focus:border-[#000000]/10 focus:bg-white transition-all shadow-inner uppercase tracking-wider"
-                       >
-                          <option value="" className="text-[#000000]/20">SELECT_CATEGORY...</option>
-                          {categories.map(c => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                       </select>
-                       <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-[#000000]/20">
-                          <ChevronRight size={22} className="rotate-90" />
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </section>
-
-        {/* MEDIA DETAILS */}
-        <section className="space-y-10">
-           <div className="flex items-center gap-4">
-              <div className="w-1.5 h-6 bg-[#FFFFFF] rounded-full" />
-              <h3 className="text-[10px] font-black text-[#000000]/30 uppercase tracking-[0.5em]">Visual Assets_</h3>
-           </div>
-
-            <div className="pl-6 space-y-12">
-              <div className="flex flex-col lg:flex-row gap-12">
-                 <input 
-                    type="file" 
-                    id="asset-upload" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleImageChange}
-                 />
-                 <div 
-                    onClick={() => document.getElementById('asset-upload')?.click()}
-                    className="flex-[2] relative border-4 border-dashed border-[#000000]/5 bg-[#D6D6D6]/20 h-96 rounded-[48px] flex flex-col items-center justify-center group overflow-hidden cursor-pointer hover:bg-[#D6D6D6]/40 hover:border-[#000000]/20 transition-all shadow-inner"
+              <div className="space-y-4">
+                 <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Categorical Tier</label>
+                 <select 
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full h-14 bg-[#F9F9F9] border border-black/5 rounded-2xl px-6 text-sm font-bold text-black focus:outline-none focus:border-black/20 transition-all appearance-none cursor-pointer"
                  >
-                    {mainImage ? (
-                       <>
-                          <img src={mainImage} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" alt="Preview" />
-                          <button 
-                             onClick={(e) => {
-                                e.stopPropagation();
-                                setMainImage(null);
-                                setImageFile(null);
-                             }}
-                             className="absolute top-10 right-10 w-12 h-12 bg-white border-2 border-[#000000]/5 rounded-full flex items-center justify-center text-[#000000] hover:bg-black hover:text-white transition-all shadow-2xl active:scale-90"
-                          >
-                             <X size={20} />
-                          </button>
-                       </>
-                    ) : (
-                       <div className="flex flex-col items-center gap-8">
-                          <div className="w-24 h-24 bg-white rounded-[32px] flex items-center justify-center text-[#000000]/10 group-hover:text-[#000000] group-hover:scale-110 group-hover:rotate-6 transition-all shadow-xl">
-                            <Upload size={32} strokeWidth={2.5} />
-                          </div>
-                          <div className="text-center space-y-4">
-                             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#000000]/20">Drop Institutional Assets</p>
-                             <button className="text-[10px] font-black uppercase tracking-[0.3em] px-10 h-14 bg-[#000000] text-[#D6D6D6] rounded-[18px] hover:bg-[#FFFFFF] transition-all shadow-xl active:scale-95">Select Primary Media</button>
-                          </div>
-                       </div>
-                    )}
-                 </div>
-
-                 <div className="flex-1 space-y-6">
-                    <p className="text-[10px] font-black text-[#000000]/20 uppercase tracking-[0.4em] ml-2">Registry Preview Stack_</p>
-                    <div className="grid grid-cols-2 gap-6">
-                       {[0, 1, 2, 3].map(i => (
-                          <div key={i} className="aspect-square bg-white border-2 border-[#000000]/5 rounded-[32px] flex items-center justify-center group cursor-pointer hover:bg-[#D6D6D6]/40 hover:border-[#000000]/20 transition-all shadow-sm">
-                             <ImageIcon size={24} className="text-[#000000]/5 group-hover:text-[#000000] transition-all" />
-                          </div>
-                       ))}
-                    </div>
-                 </div>
+                    <option value="">Select Category...</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                 </select>
               </div>
-            </div>
-        </section>
-
-        {/* VALUATION */}
-        <section className="space-y-10">
-           <div className="flex items-center gap-4">
-              <div className="w-1.5 h-6 bg-[#FFFFFF] rounded-full" />
-              <h3 className="text-[10px] font-black text-[#000000]/30 uppercase tracking-[0.5em]">Valuation Logic_</h3>
+              <div className="md:col-span-2 space-y-4">
+                 <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Product Description</label>
+                 <textarea 
+                   value={description}
+                   onChange={(e) => setDescription(e.target.value)}
+                   placeholder="Enter technical details and overview..."
+                   className="w-full h-32 bg-[#F9F9F9] border border-black/5 rounded-3xl p-6 text-sm font-bold text-black focus:outline-none focus:border-black/20 transition-all placeholder:text-black/10 resize-none"
+                 />
+              </div>
            </div>
 
-           <div className="pl-6 space-y-16">
+           <div className="space-y-6">
+              <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Technical Specs</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                 {specs.map((spec, i) => (
+                    <div key={i} className="flex gap-2 items-center bg-[#F9F9F9] p-3 rounded-2xl border border-black/5">
+                       <div className="flex-1 space-y-2">
+                          <input 
+                             value={spec.key}
+                             onChange={(e) => updateSpec(i, 'key', e.target.value)}
+                             placeholder="Label"
+                             className="w-full h-8 bg-white border border-black/5 rounded-lg px-3 text-[10px] font-bold text-black outline-none"
+                          />
+                          <input 
+                             value={spec.value}
+                             onChange={(e) => updateSpec(i, 'value', e.target.value)}
+                             placeholder="Value"
+                             className="w-full h-8 bg-white border border-black/5 rounded-lg px-3 text-[10px] font-bold text-black outline-none"
+                          />
+                       </div>
+                       <button onClick={() => removeSpec(i)} className="w-8 h-8 rounded-lg flex items-center justify-center text-black/20 hover:text-red-500 hover:bg-red-50 transition-all"><X size={14} /></button>
+                    </div>
+                 ))}
+                 <button onClick={addSpec} className="h-[92px] border border-dashed border-black/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-black/30 hover:bg-black/5 transition-all">
+                    <Plus size={16} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Add Spec</span>
+                 </button>
+              </div>
+           </div>
+        </section>
+
+        {/* IMAGES OF THE PRODUCT */}
+        <section className="bg-white p-10 rounded-[40px] border border-[#000000]/5 shadow-sm space-y-10">
+            <div className="flex items-center gap-4">
+               <div className="w-1 h-8 bg-black rounded-full" />
+               <h3 className="text-[11px] font-black text-black uppercase tracking-[0.4em]">Images of the Product</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+               {slots.map((_, i) => (
+                  <div key={i} className="group relative aspect-square rounded-[32px] border-2 border-dashed border-black/10 bg-[#F9F9F9] flex flex-col items-center justify-center overflow-hidden transition-all hover:border-black/20">
+                     {previews[i] ? (
+                        <>
+                           <img src={previews[i]!} className="w-full h-full object-cover" />
+                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button onClick={() => removeSlot(i)} className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"><Trash2 size={16} /></button>
+                           </div>
+                        </>
+                     ) : (
+                        <div className="flex flex-col items-center gap-4">
+                           <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black/10 shadow-sm"><ImageIcon size={20} /></div>
+                           <label className="cursor-pointer bg-black text-white px-6 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
+                              Upload
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleSlotUpload(i, e)} />
+                           </label>
+                        </div>
+                     )}
+                  </div>
+               ))}
+            </div>
+            <p className="text-[9px] font-bold text-black/20 uppercase tracking-[0.2em] text-center">Standard multi-angle asset projection system. Support for 4 high-fidelity files.</p>
+        </section>
+
+        {/* VALUE OF PRODUCT */}
+        <section className="bg-white p-10 rounded-[40px] border border-[#000000]/5 shadow-sm space-y-10">
+           <div className="flex items-center gap-4">
+              <div className="w-1 h-8 bg-black rounded-full" />
+              <h3 className="text-[11px] font-black text-black uppercase tracking-[0.4em]">Value of Product</h3>
+           </div>
+
+           <div className="space-y-12">
               <div className="space-y-6">
-                 <p className="text-sm font-black text-[#000000]/60 uppercase tracking-tight">Are there categorical variations for this unit?</p>
-                 <div className="flex gap-12">
+                 <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Variation Logic</p>
+                 <div className="flex flex-wrap gap-6">
                     {[
-                      { val: true, label: 'Categorical Variance' },
-                      { val: false, label: 'Single Node Specification' }
+                      { val: false, label: 'Single Node Specification' },
+                      { val: true, label: 'Categorical Variance' }
                     ].map((opt) => (
-                       <button 
-                          key={String(opt.val)}
-                          onClick={() => {
-                            setHasDifferentSizes(opt.val);
-                            if (opt.val === false) setIsConstantPrice(null);
-                          }}
-                          className="flex items-center gap-6 group cursor-pointer"
-                       >
-                          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${hasDifferentSizes === opt.val ? 'border-[#000000] shadow-[0_0_12px_rgba(63,104,68,0.3)]' : 'border-[#000000]/10 group-hover:border-[#000000]/30'}`}>
-                             {hasDifferentSizes === opt.val && <div className="w-4 h-4 rounded-full bg-[#000000]" />}
-                          </div>
-                          <span className={`text-[11px] font-black uppercase tracking-widest transition-all ${hasDifferentSizes === opt.val ? 'text-[#000000]' : 'text-[#000000]/30'}`}>
-                             {opt.label}
-                          </span>
+                       <button key={String(opt.val)} onClick={() => { setHasDifferentSizes(opt.val); if (!opt.val) setIsConstantPrice(null); }} className={`flex items-center gap-4 px-6 h-12 rounded-full border transition-all ${hasDifferentSizes === opt.val ? 'bg-black text-white border-black' : 'bg-white text-black/40 border-black/10 hover:border-black/30'}`}>
+                          <div className={`w-3 h-3 rounded-full ${hasDifferentSizes === opt.val ? 'bg-white' : 'bg-black/10'}`} />
+                          <span className="text-[9px] font-black uppercase tracking-widest">{opt.label}</span>
                        </button>
                     ))}
                  </div>
               </div>
 
-              <AnimatePresence mode="wait">
-                {hasDifferentSizes === true && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 15 }}
-                    className="space-y-16"
-                  >
-                    <div className="space-y-6">
-                        <p className="text-sm font-black text-[#000000]/60 uppercase tracking-tight">Institutional Pricing Protocol?</p>
-                        <div className="flex gap-12">
-                           {[
-                             { val: true, label: 'Uniform Valuation' },
-                             { val: false, label: 'Tiered Pricing Model' }
-                           ].map((opt) => (
-                              <button 
-                                 key={String(opt.val)}
-                                 onClick={() => setIsConstantPrice(opt.val)}
-                                 className="flex items-center gap-6 group cursor-pointer"
-                              >
-                                 <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isConstantPrice === opt.val ? 'border-[#000000] shadow-[0_0_12px_rgba(63,104,68,0.3)]' : 'border-[#000000]/10 group-hover:border-[#000000]/30'}`}>
-                                    {isConstantPrice === opt.val && <div className="w-4 h-4 rounded-full bg-[#000000]" />}
-                                 </div>
-                                 <span className={`text-[11px] font-black uppercase tracking-widest transition-all ${isConstantPrice === opt.val ? 'text-[#000000]' : 'text-[#000000]/30'}`}>
-                                    {opt.label}
-                                 </span>
-                              </button>
-                           ))}
-                        </div>
-                     </div>
+              {hasDifferentSizes === true && (
+                <div className="space-y-10 border-t border-black/5 pt-10">
+                  <div className="space-y-6">
+                      <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Pricing Strategy</p>
+                      <div className="flex flex-wrap gap-6">
+                         {[
+                           { val: true, label: 'Uniform Valuation' },
+                           { val: false, label: 'Tiered Pricing Model' }
+                         ].map((opt) => (
+                            <button key={String(opt.val)} onClick={() => setIsConstantPrice(opt.val)} className={`flex items-center gap-4 px-6 h-12 rounded-full border transition-all ${isConstantPrice === opt.val ? 'bg-black text-white border-black' : 'bg-white text-black/40 border-black/10 hover:border-black/30'}`}>
+                               <div className={`w-3 h-3 rounded-full ${isConstantPrice === opt.val ? 'bg-white' : 'bg-black/10'}`} />
+                               <span className="text-[9px] font-black uppercase tracking-widest">{opt.label}</span>
+                            </button>
+                         ))}
+                      </div>
+                   </div>
 
-                    {isConstantPrice !== null && (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="space-y-12"
-                      >
-                          <div className="h-[2px] w-full bg-[#000000]/5" />
-                          
-                          {isConstantPrice && (
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-4">
-                                   <label className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] ml-2">Institutional Price Cap (₹)_</label>
-                                   <div className="relative">
-                                      <div className="absolute left-8 top-1/2 -translate-y-1/2 text-[#000000] font-black text-xl">₹</div>
-                                      <input 
-                                         type="number"
-                                         value={basePrice || ''}
-                                         onChange={(e) => setBasePrice(Number(e.target.value))}
-                                         placeholder="0.00"
-                                         className="w-full h-16 bg-[#D6D6D6]/30 border-2 border-transparent rounded-[24px] pl-14 text-lg font-black text-[#000000] focus:outline-none focus:border-[#000000]/10 focus:bg-white transition-all shadow-inner"
-                                      />
-                                   </div>
-                                </div>
-                             </div>
-                          )}
-
-                          <div className="bg-white border-2 border-[#000000]/5 rounded-[40px] overflow-hidden shadow-2xl relative">
-                             <table className="w-full text-left border-collapse">
-                                <thead>
-                                   <tr className="bg-[#000000] text-[#D6D6D6]">
-                                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em]">Variation</th>
-                                      {!isConstantPrice && <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em]">Valuation (₹)</th>}
-                                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em]">Quantity Registry</th>
-                                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em] text-center">Protocol</th>
-                                   </tr>
-                                </thead>
-                                <tbody className="divide-y divide-[#000000]/5">
-                                   {variantRows.map((row, i) => (
-                                      <tr key={i} className="group hover:bg-[#D6D6D6]/30 transition-all">
-                                         <td className="px-8 py-6">
-                                            <input 
-                                               value={row.size}
-                                               onChange={(e) => updateVariantRow(i, 'size', e.target.value)}
-                                               placeholder="NODE_ID..."
-                                               className="w-full h-12 bg-white rounded-[16px] px-6 text-[12px] font-black text-[#000000] focus:outline-none border-2 border-[#000000]/5 uppercase tracking-wider"
-                                            />
-                                         </td>
-                                         {!isConstantPrice && (
-                                            <td className="px-8 py-6">
-                                               <input 
-                                                  type="number"
-                                                  value={row.price || ''}
-                                                  onChange={(e) => updateVariantRow(i, 'price', e.target.value)}
-                                                  placeholder="0.00"
-                                                  className="w-full h-12 bg-white rounded-[16px] px-6 text-[12px] font-black text-[#000000] focus:outline-none border-2 border-[#000000]/5"
-                                               />
-                                            </td>
-                                         )}
-                                         <td className="px-8 py-6">
-                                            <input 
-                                               type="number"
-                                               value={row.qty || ''}
-                                               onChange={(e) => updateVariantRow(i, 'qty', e.target.value)}
-                                               placeholder="0"
-                                               className="w-full h-12 bg-white rounded-[16px] px-6 text-[12px] font-black text-[#000000] focus:outline-none border-2 border-[#000000]/5"
-                                            />
-                                         </td>
-                                         <td className="px-8 py-6 text-center">
-                                            <button 
-                                               onClick={() => removeVariantRow(i)}
-                                               className="w-12 h-12 rounded-full text-black hover:bg-black hover:text-white transition-all flex items-center justify-center mx-auto shadow-sm active:scale-90"
-                                            >
-                                               <Trash2 size={20} />
-                                            </button>
-                                         </td>
-                                      </tr>
-                                   ))}
-                                </tbody>
-                             </table>
-                             <button 
-                                onClick={addVariantRow}
-                                className="w-full h-16 bg-[#D6D6D6]/50 hover:bg-[#000000] hover:text-[#D6D6D6] transition-all text-[#000000] text-[10px] font-black uppercase tracking-[0.5em] flex items-center justify-center gap-4"
-                             >
-                                <Plus size={20} strokeWidth={3} /> Add Dimension Node
-                             </button>
-                          </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-
-                {hasDifferentSizes === false && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 15 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white p-12 border-2 border-[#000000]/5 rounded-[40px] shadow-2xl mt-8"
-                  >
-                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] ml-2">Unit Valuation (₹)_</label>
-                        <div className="relative">
-                           <div className="absolute left-8 top-1/2 -translate-y-1/2 text-[#000000] font-black text-xl">₹</div>
-                           <input 
-                              type="number"
-                              value={basePrice || ''}
-                              onChange={(e) => setBasePrice(Number(e.target.value))}
-                              placeholder="0.00"
-                              className="w-full h-16 bg-[#D6D6D6]/30 border-2 border-transparent rounded-[24px] pl-16 text-lg font-black text-[#000000] focus:outline-none focus:border-[#000000]/10 focus:bg-white transition-all shadow-inner"
-                           />
+                  {isConstantPrice !== null && (
+                    <div className="space-y-8">
+                        {isConstantPrice && (
+                           <div className="max-w-xs space-y-4">
+                              <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Flat Rate (₹)</label>
+                              <input type="number" value={basePrice || ''} onChange={(e) => setBasePrice(Number(e.target.value))} placeholder="0.00" className="w-full h-14 bg-[#F9F9F9] border border-black/5 rounded-2xl px-6 text-sm font-bold text-black" />
+                           </div>
+                        )}
+                        <div className="rounded-[32px] border border-black/5 overflow-hidden">
+                           <table className="w-full text-left">
+                              <thead className="bg-[#F9F9F9]">
+                                 <tr className="border-b border-black/5">
+                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest opacity-40">Variation</th>
+                                    {!isConstantPrice && <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest opacity-40">Price (₹)</th>}
+                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest opacity-40">Qty</th>
+                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest opacity-40 text-right">Delete</th>
+                                 </tr>
+                              </thead>
+                              <tbody className="divide-y divide-black/5">
+                                 {variantRows.map((row, i) => (
+                                    <tr key={i}>
+                                       <td className="px-6 py-4"><input value={row.size} onChange={(e) => updateVariantRow(i, 'size', e.target.value)} placeholder="Size..." className="w-full h-10 bg-white border border-black/5 rounded-xl px-4 text-xs font-bold" /></td>
+                                       {!isConstantPrice && <td className="px-6 py-4"><input type="number" value={row.price || ''} onChange={(e) => updateVariantRow(i, 'price', e.target.value)} placeholder="0.00" className="w-full h-10 bg-white border border-black/5 rounded-xl px-4 text-xs font-bold" /></td>}
+                                       <td className="px-6 py-4"><input type="number" value={row.qty || ''} onChange={(e) => updateVariantRow(i, 'qty', e.target.value)} placeholder="0" className="w-full h-10 bg-white border border-black/5 rounded-xl px-4 text-xs font-bold" /></td>
+                                       <td className="px-6 py-4 text-right"><button onClick={() => removeVariantRow(i)} className="w-10 h-10 rounded-xl text-black/20 hover:text-red-500 hover:bg-red-50 transition-all inline-flex items-center justify-center"><Trash2 size={16} /></button></td>
+                                    </tr>
+                                 ))}
+                              </tbody>
+                           </table>
+                           <button onClick={addVariantRow} className="w-full py-5 bg-[#F9F9F9] hover:bg-black hover:text-white transition-all text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3"><Plus size={16} /> Add Variant</button>
                         </div>
-                     </div>
-                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] ml-2">Initial Inventory Registry_</label>
-                        <div className="relative">
-                           <Package className="absolute left-8 top-1/2 -translate-y-1/2 text-[#000000]/10" size={24} />
-                           <input 
-                              type="number"
-                              value={baseQty || ''}
-                              onChange={(e) => setBaseQty(Number(e.target.value))}
-                              placeholder="TOTAL_UNITS..."
-                              className="w-full h-16 bg-[#D6D6D6]/30 border-2 border-transparent rounded-[24px] pl-16 text-lg font-black text-[#000000] focus:outline-none focus:border-[#000000]/10 focus:bg-white transition-all shadow-inner"
-                           />
-                        </div>
-                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {hasDifferentSizes === false && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-black/5 pt-10">
+                   <div className="space-y-4">
+                      <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Unit Valuation (₹)</label>
+                      <input type="number" value={basePrice || ''} onChange={(e) => setBasePrice(Number(e.target.value))} placeholder="0.00" className="w-full h-14 bg-[#F9F9F9] border border-black/5 rounded-2xl px-6 text-sm font-bold text-black" />
+                   </div>
+                   <div className="space-y-4">
+                      <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.3em] ml-2">Total Units</label>
+                      <input type="number" value={baseQty || ''} onChange={(e) => setBaseQty(Number(e.target.value))} placeholder="Quantity..." className="w-full h-14 bg-[#F9F9F9] border border-black/5 rounded-2xl px-6 text-sm font-bold text-black" />
+                   </div>
+                </div>
+              )}
            </div>
         </section>
       </main>
 
-      <footer className="pt-16 border-t border-[#000000]/10 flex flex-col md:flex-row gap-8">
-        <button 
-           onClick={() => navigate('/admin/inventory')}
-           className="flex-1 h-20 bg-white border-2 border-[#000000]/5 text-[#000000]/40 rounded-[28px] text-[11px] font-black uppercase tracking-[0.5em] hover:bg-black hover:text-black hover:border-black transition-all flex items-center justify-center gap-4 shadow-sm active:scale-[0.98]"
-        >
-           <X size={20} /> Abort Operation
+      <footer className="max-w-7xl mx-auto flex gap-6 pt-10">
+        <button onClick={() => navigate('/admin/inventory')} className="flex-1 h-16 bg-white border border-black/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-black/40 hover:bg-[#F9F9F9] hover:text-black transition-all shadow-sm">
+           Cancel
         </button>
-        <button 
-           onClick={handleSync}
-           disabled={isSubmitting}
-           className={`flex-[2] h-20 rounded-[28px] text-[12px] font-black uppercase tracking-[0.5em] transition-all shadow-2xl flex items-center justify-center gap-6 group relative overflow-hidden ${isSubmitting ? 'bg-[#000000]/20 cursor-wait text-[#000000]/40' : 'bg-[#000000] text-[#D6D6D6] hover:bg-[#FFFFFF]'}`}
-        >
-           {isSubmitting ? (
-             <div className="w-6 h-6 border-4 border-[#000000]/20 border-t-[#000000] animate-spin rounded-full" />
-           ) : (
-             <div className="w-3 h-3 rounded-full bg-[#FFFFFF] group-hover:bg-white animate-ping" />
-           )}
-           {isSubmitting ? 'SYNCHRONIZING_CORE...' : 'Commit to Institutional Registry'}
+        <button onClick={handleSync} disabled={isSubmitting} className={`flex-[2] h-16 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-4 ${isSubmitting ? 'bg-black/20 text-black/40 cursor-wait' : 'bg-black text-white hover:bg-black/90 active:scale-[0.98]'}`}>
+           {isSubmitting ? <div className="w-4 h-4 border-2 border-black/10 border-t-black animate-spin rounded-full" /> : <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+           {isSubmitting ? 'Syncing...' : 'Add to Inventory'}
         </button>
       </footer>
+
+      {/* SUCCESS POPUP */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 bg-[#F5F5F5] z-[3000] flex flex-col items-center justify-center space-y-8"
+          >
+             <motion.div 
+               initial={{ scale: 0.9, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               className="w-24 h-24 bg-black rounded-[32px] flex items-center justify-center text-white shadow-2xl"
+             >
+                <Package size={40} />
+             </motion.div>
+             <div className="text-center space-y-3">
+                <h3 className="text-4xl font-black text-black uppercase tracking-tighter">The item have been added</h3>
+                <p className="text-[12px] font-bold text-black/20 uppercase tracking-[0.6em]">Redirecting to Inventory Control Control...</p>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

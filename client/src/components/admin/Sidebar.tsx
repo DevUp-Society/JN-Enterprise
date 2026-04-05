@@ -56,7 +56,7 @@ export default function Sidebar({ issuesCount = 0 }: { issuesCount?: number }) {
   const visibleItems = navItems.filter(item => item.visible);
 
   return (
-    <aside className="w-64 bg-[#D6D6D6] text-black flex flex-col fixed h-full z-20 transition-all border-r border-black/10">
+    <aside className="w-56 bg-[#D6D6D6] text-black flex flex-col fixed h-full z-20 transition-all border-r border-black/10">
       {/* Branding */}
       <div className="p-10 border-b border-black/5 flex items-center gap-4 mb-6">
          <div className="w-10 h-10 bg-black rounded-xl text-[#FFFFFF] flex items-center justify-center font-bold text-lg shadow-lg">JN</div>

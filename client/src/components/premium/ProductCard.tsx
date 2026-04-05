@@ -1,7 +1,4 @@
 import { motion } from 'framer-motion';
-import { ShoppingCart } from 'lucide-react';
-import { useCart } from '../../store/CartContext';
-
 interface ProjectProduct {
   id: string;
   name: string;
@@ -18,22 +15,6 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, className = "" }: ProductCardProps) => {
-  const { addItem } = useCart();
-
-  const handleQuickAdd = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    addItem([{
-      cartItemId: `${product.id}-OS`,
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      sku: product.sku || 'N/A',
-      size: 'OS',
-      quantity: 1
-    }]);
-  };
-
   return (
     <motion.div 
       initial={{ opacity: 0, y: 15 }}
@@ -72,26 +53,24 @@ const ProductCard = ({ product, className = "" }: ProductCardProps) => {
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 px-6 py-4 flex flex-col justify-between">
-        <div className="space-y-1">
-          <div className="flex justify-between items-start">
-            <h4 className="text-[13px] font-bold text-black tracking-tight leading-tight line-clamp-2 max-w-[80%]">
+      <div className="flex-1 px-4 md:px-6 py-3 md:py-4 flex flex-col justify-between">
+        <div className="space-y-0.5 md:space-y-1">
+          <div className="flex justify-between items-start gap-2">
+            <h4 className="text-[11px] md:text-[13px] font-black text-black tracking-tight leading-tight line-clamp-2">
               {product.name}
             </h4>
-            <span className="text-[9px] font-medium text-black/30 tracking-widest uppercase mt-1">
-              {product.sku?.split('-').pop() || 'PROT-X'}
+            <span className="shrink-0 text-[8px] md:text-[9px] font-medium text-black/30 tracking-widest uppercase mt-0.5">
+              {product.sku?.split('-').pop() || 'UNIT'}
             </span>
           </div>
         </div>
         
-      <div className="p-0 md:p-3 border-t border-black/[0.02] bg-white mt-auto overflow-hidden">
+      <div className="sticky bottom-0 p-3 md:p-4 border-t border-black/[0.05] bg-white mt-auto overflow-hidden">
         <button 
-          onClick={handleQuickAdd}
-          className="w-full h-8 md:h-10 bg-black text-white hover:bg-black/80 transition-all flex items-center justify-center gap-2 md:gap-3 rounded-none md:rounded-[8px] group/add active:scale-[0.98]"
+          onClick={(e) => { e.stopPropagation(); window.location.href = `/product/${product.id}`; }}
+          className="w-full h-12 md:h-12 bg-black text-white hover:bg-black/90 transition-all flex items-center justify-center gap-3 rounded-[8px] group/add active:scale-[0.98]"
         >
-           <ShoppingCart size={14} className="md:w-4 md:h-4 text-white" />
-           <span className="text-[8px] md:text-[10px] font-black uppercase tracking-normal whitespace-nowrap">Add to Cart</span>
+           <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">View Product</span>
         </button>
       </div>
       </div>

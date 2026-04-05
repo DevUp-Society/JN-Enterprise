@@ -3,13 +3,10 @@ import { Outlet, useLocation } from 'react-router-dom';
 import WorkerSidebar from '../components/worker/WorkerSidebar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMobile } from '../hooks/useMobile';
-import BottomNavbar from './BottomNavbar';
-import { 
-  Bell,
-  X,
-  Package
-} from 'lucide-react';
+import { BottomNavbar } from '../components/navigation/BottomNavbar';
+import { MobileHeader } from '../components/navigation/MobileHeader';
 import { DataService } from '../services/DataService';
+import { Bell, X } from 'lucide-react';
 
 export default function WorkerLayout() {
   const isMobile = useMobile();
@@ -31,12 +28,6 @@ export default function WorkerLayout() {
     }
   }, []);
 
-  const navItems = [
-    { id: 'orders', icon: Package, label: 'QUEUE', path: '/worker/orders' },
-    { id: 'inventory', icon: Package, label: 'INVENTORY', path: '/worker/inventory' },
-    { id: 'archive', icon: Package, label: 'ARCHIVE', path: '/worker/completed' },
-    { id: 'settings', icon: Package, label: 'SETTINGS', path: '/worker/settings' },
-  ];
 
   return (
     <div className="flex min-h-screen bg-[#D6D6D6] font-sans text-black selection:bg-[#000000] selection:text-[#D6D6D6] transition-colors overflow-x-hidden">
@@ -97,26 +88,8 @@ export default function WorkerLayout() {
       {!isMobile && <WorkerSidebar issuesCount={issuesCount} />}
 
       <main className={`flex-1 transition-all duration-500 min-h-screen ${isMobile ? 'p-4 pt-24 pb-32' : 'ml-64 p-8'}`}>
-         {/* Mobile Header / Logo */}
-         {isMobile && (
-            <div className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 z-50 border-b border-[#FFFFFF]/5">
-               <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white">
-                     <Package size={16} />
-                  </div>
-                  <h1 className="text-xs font-black tracking-widest text-black uppercase">JN_ENTERPRISE</h1>
-               </div>
-               <button 
-                  onClick={() => setIsNotificationsOpen(true)}
-                  className="relative p-2 rounded-full hover:bg-[#D6D6D6] transition-colors"
-               >
-                  <Bell size={20} className="text-black" />
-                  {broadcast?.active && (
-                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#000000] rounded-full border-2 border-white" />
-                  )}
-               </button>
-            </div>
-         )}
+         {/* Mobile Native Header */}
+         {isMobile && <MobileHeader />}
 
          <AnimatePresence mode="wait">
           <motion.div
@@ -133,7 +106,7 @@ export default function WorkerLayout() {
       </main>
 
       {/* Mobile Navigation */}
-      {isMobile && <BottomNavbar items={navItems} />}
+      {isMobile && <BottomNavbar />}
     </div>
   );
 }

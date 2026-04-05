@@ -41,12 +41,13 @@ export const productSchema = z.object({
   body: z.object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
     sku: z.string().min(5, 'SKU must be at least 5 alphanumeric characters'),
-    category: z.string().min(1, 'Category is required'),
-    price: z.number().positive('Unit price must be positive'),
-    stockQuantity: z.number().int().min(0, 'Inventory cannot be negative'),
-    minThreshold: z.number().int().min(1).optional(),
+    categoryId: z.string().min(1, 'Category identifier is required'),
+    price: z.coerce.number().min(0, "VALUATION_ERROR"),
+    stockQuantity: z.coerce.number().min(0, "INVENTORY_ERROR"),
+    minThreshold: z.coerce.number().min(0).optional(),
+    specs: z.string().optional(),
     description: z.string().optional(),
-    image: z.string().url('Invalid industrial media URL').optional(),
+    // Image is handled by multer and req.file, NOT by body schema in multipart requests
   }),
 });
 

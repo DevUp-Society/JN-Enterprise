@@ -6,6 +6,11 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient() as any;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
+// Super Admin Identity Protocol (Decoupled from standard DB loop)
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'admin@jn.com';
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'admin123';
+const SUPER_ADMIN_ID = '00000000-0000-4000-a000-000000000000'; // Static Identifier
+
 const validatePassword = (password: string) => {
   const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   return regex.test(password);
@@ -70,6 +75,43 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Email and Password are required' });
     }
 
+    // IDENTITY-FIRST PROTOCOL: Check for Super Admin before Prisma Registry
+    if (email === SUPER_ADMIN_EMAIL && password === SUPER_ADMIN_PASSWORD) {
+      const token = jwt.sign(
+        { id: SUPER_ADMIN_ID, email: SUPER_ADMIN_EMAIL, role: 'SUPER_ADMIN' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 3600000, 
+      });
+
+      return res.status(200).json({
+        message: 'Super Admin Login Successful',
+        user: {
+          id: SUPER_ADMIN_ID,
+          email: SUPER_ADMIN_EMAIL,
+          role: 'SUPER_ADMIN',
+          name: 'JN Super Admin',
+          isSuperAdmin: true,
+          permissions: {
+            canViewAnalytics: true,
+            canViewInventory: true,
+            canAddProduct: true,
+            canManageOrders: true,
+            canManageUsers: true,
+            canManagePartners: true,
+            canManageAdmins: true,
+            canAccessSettings: true
+          }
+        }
+      });
+    }
+
     const user = await prisma.user.findUnique({ 
       where: { email },
       include: { 
@@ -121,6 +163,27 @@ export const login = async (req: Request, res: Response) => {
 
 export const me = async (req: any, res: Response) => {
   try {
+    // IDENTITY-FIRST PROTOCOL: Return hardcoded super admin context if ID matches
+    if (req.user.id === SUPER_ADMIN_ID) {
+      return res.status(200).json({
+        id: SUPER_ADMIN_ID,
+        email: SUPER_ADMIN_EMAIL,
+        role: 'SUPER_ADMIN',
+        name: 'JN Super Admin',
+        isSuperAdmin: true,
+        permissions: {
+          canViewAnalytics: true,
+          canViewInventory: true,
+          canAddProduct: true,
+          canManageOrders: true,
+          canManageUsers: true,
+          canManagePartners: true,
+          canManageAdmins: true,
+          canAccessSettings: true
+        }
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: { 

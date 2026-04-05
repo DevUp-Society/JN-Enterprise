@@ -83,7 +83,7 @@ export default function OrdersPage() {
                    >
                       <div className="flex items-center gap-6 w-full sm:w-auto">
                          <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-[8px] flex items-center justify-center text-black/20 group-hover:bg-black group-hover:text-white transition-all shadow-sm">
-                            <Package size={24} md:size={28} />
+                            <Package className="w-6 h-6 md:w-7 md:h-7" />
                          </div>
                          <div className="min-w-0">
                             <p className="text-[9px] font-black text-black/30 uppercase tracking-[0.3em] mb-1 leading-none">REQ_{order.id.split('-')[0]}</p>

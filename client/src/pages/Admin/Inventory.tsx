@@ -6,9 +6,7 @@ import {
   Filter,
   LayoutGrid,
   List,
-  ChevronRight,
-  DollarSign,
-  Layers
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -110,7 +108,6 @@ export default function Inventory() {
     });
   }, [products, searchQuery, activeCategoryFilter, priceRange, stockStatus]);
 
-  const totalCapital = useMemo(() => products.reduce((acc, p) => acc + (p.stock * p.price), 0), [products]);
 
   const handleCategoryClick = (categoryName: string) => {
     setActiveCategoryFilter(categoryName);
@@ -340,39 +337,9 @@ export default function Inventory() {
         )}
       </AnimatePresence>
 
-      {/* FOOTER METRICS */}
-      <footer className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-16 border-t border-[#000000]/10">
-         <div className="bg-white p-10 border-2 border-[#000000]/5 shadow-xl rounded-[40px] relative overflow-hidden group">
-            <DollarSign className="absolute -top-6 -right-6 text-7xl text-[#000000]/5 group-hover:text-[#000000]/10 group-hover:rotate-12 transition-all duration-700" />
-            <p className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em] mb-6">Total Capitalization</p>
-            <p className="text-4xl font-black text-[#000000] tracking-tighter">₹{totalCapital.toLocaleString()}</p>
-            <div className="h-[2px] w-full bg-[#000000]/5 mt-10 rounded-full" />
-         </div>
-
-         <div className="bg-white p-10 border-2 border-[#000000]/5 shadow-xl rounded-[40px] relative group">
-            <Layers className="absolute -top-6 -right-6 text-7xl text-[#000000]/5 group-hover:text-[#000000]/10 group-hover:-rotate-12 transition-all duration-700" />
-            <div className="flex justify-between items-start mb-6">
-               <p className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em]">Storage Utility</p>
-               <p className="text-xl font-black text-[#000000] tracking-tighter">78.4%</p>
-            </div>
-            <div className="h-3 w-full bg-[#D6D6D6] rounded-full mt-10 relative overflow-hidden shadow-inner">
-               <motion.div 
-                  initial={{ width: 0 }}
-                  whileInView={{ width: '78.4%' }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                  className="h-full bg-[#000000] shadow-[0_0_12px_rgba(63,104,68,0.4)]"
-               />
-            </div>
-         </div>
-
-         <div className="bg-white p-10 border-2 border-[#000000]/5 shadow-xl rounded-[40px] relative group overflow-hidden">
-            <div className="flex justify-between items-start mb-6">
-               <p className="text-[10px] font-black text-[#000000]/40 uppercase tracking-[0.4em]">Operational Pulse</p>
-               <div className="w-3 h-3 rounded-full bg-[#FFFFFF] animate-ping" />
-            </div>
-            <p className="text-4xl font-black text-[#FFFFFF] tracking-tighter uppercase">Nominal</p>
-            <div className="h-[2px] w-full bg-[#000000]/5 mt-10 rounded-full" />
-         </div>
+      {/* FOOTER_RECORDS_LOG */}
+      <footer className="pt-12 border-t border-[#000000]/10 text-center">
+         <p className="text-[10px] font-black text-[#000000]/20 uppercase tracking-[0.5em]">Inventory Metadata Registry: Industrial Catalog Mode</p>
       </footer>
 
       {/* MODAL_LAYERS_STACK */}

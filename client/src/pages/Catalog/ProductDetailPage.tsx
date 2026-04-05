@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   ShoppingCart, 
@@ -83,6 +83,41 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
   }, [id]);
 
+  const images = useMemo(() => {
+    if (product && product.images) {
+      try {
+        const parsed = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('IMAGE_PARSE_FAILURE', e);
+      }
+    }
+    return product?.image ? [product.image] : ['https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=60'];
+  }, [product]);
+
+  const specifications = useMemo(() => {
+    if (product && product.specs) {
+      try {
+        const parsed = typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs;
+        if (Array.isArray(parsed)) {
+          return parsed.map((s: any) => ({
+            label: s.key,
+            value: s.value,
+            icon: Layers
+          }));
+        }
+      } catch (e) {
+        console.error('SPEC_PARSE_FAILURE', e);
+      }
+    }
+    return [
+      { label: "Material", value: "Industrial Polymer", icon: Layers },
+      { label: "Dimensions", value: "Standard Unit", icon: Maximize },
+      { label: "Weight", value: "Variable", icon: Weight },
+      { label: "Lead Time", value: "Ready to Dispatch", icon: Clock }
+    ];
+  }, [product]);
+
   if (loading || !product) return (
     <div className="min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center gap-4">
        <div className="w-10 h-10 border-4 border-[#000000]/10 border-t-[#000000] rounded-full animate-spin" />
@@ -90,7 +125,6 @@ export default function ProductDetailPage() {
     </div>
   );
 
-  const images = product.images || (product.image ? [product.image] : ['https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=60']);
   const availableSizes = product.availableSizes || [
      { name: 'S', price: product.price || 0, stock: 124 },
      { name: 'M', price: (product.price || 0) * 0.95, stock: 82 },
@@ -128,13 +162,6 @@ export default function ProductDetailPage() {
       addItem(itemsToAdd);
     }
   };
-
-  const specifications = product.specifications || [
-    { label: "Material", value: "Industrial Polymer", icon: Layers },
-    { label: "Dimensions", value: "Standard Unit", icon: Maximize },
-    { label: "Weight", value: "Variable", icon: Weight },
-    { label: "Lead Time", value: "Ready to Dispatch", icon: Clock }
-  ];
 
   const reviews = [
     { user: "Fac. Manager A", rating: 5, comment: "Exceptional build quality. Fits perfectly in our Southern Hub setup." },
@@ -247,7 +274,7 @@ export default function ProductDetailPage() {
                        
                        <div className="flex gap-2">
                           <button onClick={handleAddToCart} disabled={totalItems === 0} className={`flex-1 py-3.5 rounded-[4px] font-black uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${totalItems > 0 ? 'bg-black text-[#D6D6D6] hover:bg-[#111111]' : 'bg-black/5 text-black/10 cursor-not-allowed'}`}>
-                             ADD TO CART <ShoppingCart size={16} />
+                             SHOP UNIT <ShoppingCart size={16} />
                           </button>
                           <button onClick={() => setShowCartDropdown(!showCartDropdown)} className={`w-12 py-3 rounded-[4px] border border-[#000000]/10 flex items-center justify-center transition-all bg-white text-black/30 hover:bg-[#D6D6D6]/10 ${showCartDropdown ? 'rotate-180' : ''}`}>
                              <ChevronDown size={18} />

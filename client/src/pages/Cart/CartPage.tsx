@@ -18,6 +18,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../store/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IndustrialEmptyState } from '../../components/premium/IndustrialEmptyState';
 
 export default function CartPage() {
   const { cart, carts, activeCartId, setActiveCartId, createCart, deleteCart, removeItem, updateQuantity, clearCart } = useCart();
@@ -86,9 +87,9 @@ export default function CartPage() {
                   <button onClick={() => { clearCart(); setIsCheckingOut(false); setStep(1); setPaymentDone(false); navigate('/orders'); }} className="w-full py-6 md:py-8 bg-black text-[#D6D6D6] rounded-[20px] md:rounded-[32px] font-black uppercase text-[10px] md:text-[12px] tracking-widest md:tracking-[0.4em] hover:bg-black/80 transition-all shadow-xl active:scale-95">
                      CONTINUE TO ORDERS
                   </button>
-              </div>
-           </motion.div>
-        </div>
+               </div>
+            </motion.div>
+         </div>
      )
   }
 
@@ -197,53 +198,14 @@ export default function CartPage() {
                            </div>
                         </div>
                        ) : (
-                          <div className="p-10 max-w-md mx-auto text-center space-y-6 bg-white border border-[#000000]/10 rounded-[40px] shadow-sm my-20">
-                             <div className="w-20 h-20 bg-[#D6D6D6] rounded-full flex items-center justify-center mx-auto border border-[#000000]/5">
-                                <ShoppingCart size={32} className="text-[#000000]/20" />
-                             </div>
-                             <div className="text-center space-y-2">
-                                <h3 className="text-xl font-bold tracking-tight text-[#000000]">Cart Empty</h3>
-                                <p className="text-[13px] font-medium text-[#000000]/60 leading-relaxed">Your cart is currently empty. Explore our catalog to find items.</p>
-                             </div>
-                             <div className="pt-2">
-                                <button 
-                                  onClick={() => navigate('/home')}
-                                  className="w-full inline-flex items-center justify-center gap-2 bg-[#000000] text-white font-bold uppercase text-[11px] tracking-widest py-4 px-8 rounded-2xl hover:bg-[#D6D6D6] hover:text-[#000000] transition-all shadow-lg active:scale-95"
-                                >
-                                   SHOP NOW
-                                </button>
-                             </div>
-                          </div>
+                          <IndustrialEmptyState 
+                            icon={ShoppingCart}
+                            title="Cart Registry Empty"
+                            message="Your industrial requisition node is currently unpopulated. Explore the catalog to select units."
+                            actionText="Browse Units"
+                            primaryActionPath="/home"
+                          />
                        )}
-
-                    {!isEmpty && !isCheckingOut && (
-                        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8 pt-6 md:pt-8 border-t border-black/10">
-                            <div className="space-y-2 md:space-y-3 w-full lg:max-w-md text-left bg-[#D6D6D6]/30 p-4 md:p-6 rounded-[12px] border border-black/5">
-                                <p className="text-[9px] font-black text-black/40 uppercase tracking-[0.4em]">LOGISTICS ADVISORY</p>
-                                <p className="text-[11px] md:text-[12px] font-medium text-black/60 leading-relaxed">Enterprise requisitions are processed with priority batch fulfillment. Standard logistics fees apply.</p>
-                            </div>
-                            
-                            <div className="w-full lg:w-[400px] space-y-6 bg-[#D6D6D6]/30 p-6 md:p-8 rounded-[16px] md:rounded-[24px] border border-black/5 shadow-sm text-left">
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center opacity-70">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-black">Subtotal</span>
-                                        <span className="text-[14px] md:text-[16px] font-bold text-black">₹{subtotal.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center opacity-70">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-black">Logistics (5%)</span>
-                                        <span className="text-[14px] md:text-[16px] font-bold text-black">₹{logistics.toLocaleString()}</span>
-                                    </div>
-                                    <div className="pt-4 border-t border-black/10 flex justify-between items-center">
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-black">TOTAL</span>
-                                        <span className="text-[24px] md:text-[28px] font-black text-black">₹{total.toLocaleString()}</span>
-                                    </div>
-                                </div>
-                                <button onClick={() => setIsCheckingOut(true)} className="w-full py-4 md:py-5 bg-black text-white rounded-[12px] font-black uppercase text-[10px] md:text-[11px] tracking-[0.3em] hover:bg-black/80 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-md">
-                                    PROCEED TO CHECKOUT <ArrowRight size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
                  </motion.div>
               )}
 

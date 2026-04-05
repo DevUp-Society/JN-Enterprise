@@ -48,6 +48,9 @@ export default function CategoryManager() {
   const [newName, setNewName] = useState("");
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+
   const [pendingCategories, setPendingCategories] = useState<Category[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -84,7 +87,13 @@ export default function CategoryManager() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => 
       axiosInstance.delete(`/products/categories/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setIsDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+      setNotification({ message: "Categorical node purged from registry", type: 'success' });
+      setTimeout(() => setNotification(null), 3000);
+    },
     onError: (err: any) => setNotification({ message: err.response?.data?.message || "Deletion protocol failed", type: 'error' })
   });
 
@@ -163,6 +172,16 @@ export default function CategoryManager() {
     setIsModalOpen(false);
   };
 
+  const openDeletePrompt = (cat: Category) => {
+    setCategoryToDelete(cat);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const closeDeletePrompt = () => {
+    setIsDeleteDialogOpen(false);
+    setCategoryToDelete(null);
+  };
+
   if (isLoading) return (
      <div className="h-screen flex flex-col items-center justify-center bg-[#D6D6D6]/30 select-none">
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} className="w-16 h-16 border-4 border-[#000000]/5 border-t-[#000000] rounded-full shadow-2xl mb-8" />
@@ -196,7 +215,7 @@ export default function CategoryManager() {
            <SortableContext items={pendingCategories.map(c => c.id)} strategy={verticalListSortingStrategy}>
               <div className="divide-y divide-[#000000]/5 transition-colors">
                  {pendingCategories.map((cat, idx) => (
-                    <SortableItem key={cat.id} cat={cat} index={idx} onEdit={() => openModal(cat)} onDelete={() => deleteMutation.mutate(cat.id)} onPositionChange={handleManualPositionChange} />
+                    <SortableItem key={cat.id} cat={cat} index={idx} onEdit={() => openModal(cat)} onDelete={() => openDeletePrompt(cat)} onPositionChange={handleManualPositionChange} />
                  ))}
                  {pendingCategories.length === 0 && (
                     <div className="p-32 text-center space-y-4">
@@ -260,6 +279,36 @@ export default function CategoryManager() {
                     <button type="submit" disabled={upsertMutation.isPending} className="flex-[2] h-14 bg-[#000000] text-[#D6D6D6] rounded-[20px] font-black text-[11px] uppercase tracking-widest shadow-2xl hover:bg-[#FFFFFF] hover:text-black transition-all active:scale-95 disabled:opacity-50">{upsertMutation.isPending ? "SAVING..." : "Confirm Category"}</button>
                  </div>
               </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isDeleteDialogOpen && categoryToDelete && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeDeletePrompt} className="fixed inset-0 bg-[#000000]/40 backdrop-blur-md z-[1200]" />
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-4rem)] max-w-lg bg-white p-12 shadow-[0_0_120px_rgba(0,0,0,0.3)] z-[1300] rounded-[48px] border-2 border-red-600/10 text-center flex flex-col items-center gap-10">
+               <div className="w-20 h-20 bg-red-50 rounded-[32px] flex items-center justify-center text-red-600 shadow-inner">
+                  <Trash2 size={36} strokeWidth={2.5} />
+               </div>
+               <div className="space-y-4">
+                  <h3 className="text-3xl font-black text-[#000000] tracking-tighter uppercase leading-tight">Delete Category?</h3>
+                  <p className="text-[10pt] font-bold text-[#000000]/40 uppercase tracking-tight leading-relaxed px-4">
+                     You are about to purge <span className="text-red-600 font-black">"{categoryToDelete.name}"</span>. 
+                     All products within this category will be <span className="text-red-600 font-black underline decoration-2">Deleted Permanently</span>.
+                  </p>
+               </div>
+               <div className="flex gap-6 w-full pt-4">
+                  <button onClick={closeDeletePrompt} className="flex-1 h-14 bg-white border-2 border-[#000000]/5 text-[#000000]/40 rounded-[20px] font-black text-[11px] uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-sm">Cancel</button>
+                  <button 
+                    onClick={() => deleteMutation.mutate(categoryToDelete.id)} 
+                    disabled={deleteMutation.isPending}
+                    className="flex-[2] h-14 bg-red-600 text-white rounded-[20px] font-black text-[11px] uppercase tracking-widest shadow-2xl hover:bg-black transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {deleteMutation.isPending ? "PURGING..." : "Confirm Deletion"}
+                  </button>
+               </div>
             </motion.div>
           </>
         )}

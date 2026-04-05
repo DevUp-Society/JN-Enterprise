@@ -263,14 +263,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Check for products
-    const productCount = await (prisma as any).product.count({ where: { categoryId: id } });
-    if (productCount > 0) {
-      return res.status(400).json({
-        status: 'ERROR',
-        message: 'RESTRICTED_ACTION: Category contains active products. Relocate inventory before deletion.'
-      });
-    }
+    // The Prisma schema now handles cascading deletes for associated products.
 
     await (prisma as any).category.delete({ where: { id } });
     res.status(200).json({ status: 'SUCCESS', message: 'Category node purged.' });
@@ -319,7 +312,20 @@ export const reorderCategories = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+
+    // Handle multiple images if provided
+    const imageFiles = (req as any).files as Express.Multer.File[];
+    if (imageFiles && imageFiles.length > 0) {
+      const imagePaths = imageFiles.map(file => `/uploads/${file.filename}`);
+      updateData.images = JSON.stringify(imagePaths);
+      updateData.image = imagePaths[0];
+    }
+
+    // Parse numeric fields if they arrive as strings
+    if (updateData.price) updateData.price = parseFloat(updateData.price);
+    if (updateData.stockQuantity) updateData.stockQuantity = parseInt(updateData.stockQuantity);
+    if (updateData.minThreshold) updateData.minThreshold = parseInt(updateData.minThreshold);
 
     const updatedProduct = await (prisma as any).product.update({
       where: { id: id as string },
@@ -345,24 +351,64 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-/**
- * @desc    Create a new industrial product node with media support
- * @route   POST /api/products
- * @access  Private (Admin/Systems)
- */
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, sku, description, categoryId, price, stockQuantity, minThreshold } = req.body;
+    const { name, sku, description, categoryId, price, stockQuantity, minThreshold, specs } = req.body;
     
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+    // Handle multiple images
+    const imageFiles = (req as any).files as Express.Multer.File[];
+    const imagePaths = imageFiles?.map(file => `/uploads/${file.filename}`) || [];
+    const primaryImage = imagePaths.length > 0 ? imagePaths[0] : null;
+
+    // Strict numerical coercion for registry integrity
+    const parsedPrice = parseFloat(price);
+    const parsedStock = parseInt(stockQuantity);
+    const parsedThreshold = parseInt(minThreshold) || 5;
+
+    if (isNaN(parsedPrice) || isNaN(parsedStock)) {
+      return res.status(400).json({
+        status: 'ERROR',
+        message: 'VALUATION_FAILURE: Price and Stock Quantity must be valid numeric sequences.'
+      });
+    }
     
-    const adminUser = await (prisma as any).user.findFirst({ where: { role: 'ADMIN' } });
-    const creatorId = (req as any).user?.id || adminUser?.id;
+    // Attempt to identify the systems officer (admin) responsible for this node
+    let creatorId = (req as any).user?.id;
+    
+    // Explicit verification of administrative identity in current DB state
+    const verifiedUser = await (prisma as any).user.findUnique({
+      where: { id: creatorId }
+    });
+
+    if (!verifiedUser) {
+      // Fallback: search for first available admin role if current identity is stale
+      const adminUser = await (prisma as any).user.findFirst({ 
+        where: { 
+          role: { in: ['ADMIN', 'SUPER_ADMIN'] } 
+        } 
+      });
+      creatorId = adminUser?.id;
+    } else {
+      creatorId = verifiedUser.id;
+    }
 
     if (!creatorId) {
-      return res.status(403).json({
+      console.error('[REGISTRY_FATAL] No validated administrative identity found to authorize node expansion.');
+      return res.status(401).json({
         status: 'ERROR',
-        message: 'ARCHIVE_ACCESS_DENIED: No authorized administrative identity found.',
+        message: 'ARCHIVE_ACCESS_DENIED: Stale or invalid administrative identity.',
+      });
+    }
+
+    // Verify category existence to prevent P2003
+    const categoryExists = await (prisma as any).category.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!categoryExists) {
+      return res.status(400).json({
+        status: 'ERROR',
+        message: 'CATEGORICAL_ERROR: Specified category identifier does not exist in the registry.',
       });
     }
 
@@ -370,13 +416,15 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       data: {
         name,
         sku,
-        description,
+        description: description || '',
         categoryId,
-        price: parseFloat(price),
-        stockQuantity: parseInt(stockQuantity),
-        minThreshold: parseInt(minThreshold) || 5,
+        price: parsedPrice,
+        stockQuantity: parsedStock,
+        minThreshold: parsedThreshold,
         creatorId,
-        image: imagePath,
+        image: primaryImage,
+        images: JSON.stringify(imagePaths),
+        specs: specs || '[]',
         version: 0
       },
     });
@@ -398,7 +446,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 
     res.status(500).json({
       status: 'ERROR',
-      message: 'Failed to persist industrial product node.',
+      message: 'Failed to persist industrial product node. Check categorical constraints.',
     });
   }
 };

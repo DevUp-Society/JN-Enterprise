@@ -45,12 +45,13 @@ model Permissions {
   
   // Granular Access Flags
   canViewInventory  Boolean @default(true)
-  canManageProducts Boolean @default(true)
+  canAddProduct     Boolean @default(true)
   canManageOrders   Boolean @default(true)
   canViewAnalytics  Boolean @default(true)
   canManageUsers    Boolean @default(false)
   canManagePartners Boolean @default(false)
   canManageAdmins   Boolean @default(false)
+  canAccessSettings Boolean @default(false)
 }
 
 model Company {
@@ -89,9 +90,11 @@ model Product {
   price         Decimal
   stockQuantity Int      @default(0)
   minThreshold  Int      @default(5)
+  images        String?  // JSON array of image paths
+  specs         String?  // JSON array of {key, value} pairs
   
   // High-end Relations
-  category      Category @relation(fields: [categoryId], references: [id])
+  category      Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId    String
   
   createdBy     User     @relation("AdminCreator", fields: [creatorId], references: [id])
